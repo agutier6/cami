@@ -21,9 +21,9 @@ const Signup = () => {
 
     function validateUsername() {
         if (username === undefined || username === "") {
-            setUsernameErrorMessage('Username is required');
+            setUsernameErrorMessage('A girl has no name.');
         } else if (username.length < 5 || username.length > 20) {
-            setUsernameErrorMessage('Username must be between 5 and 20 characters');
+            setUsernameErrorMessage('Username must be between 5 and 20 characters. Cooked to perfection.');
         } else {
             setUsernameErrorMessage(undefined);
         }
@@ -32,11 +32,11 @@ const Signup = () => {
     function validateEmail() {
         const reg = new RegExp(/^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w\w+)+$/);
         if (email === undefined || email === "") {
-            setEmailErrorMessage('Email is required');
-        } else if (email.length > 255) {
-            setEmailErrorMessage('Email is over character limit');
+            setEmailErrorMessage('It\'s the 21st century. You must have an email.');
+        } else if (email.length > 320) {
+            setEmailErrorMessage('Not even Mr. Bonzu Pippinpaddle Oppsokopolis the Third has such a long email!');
         } else if (reg.test(email) === false) {
-            setEmailErrorMessage('Email is invalid');
+            setEmailErrorMessage('Hint: It should have an @ and a . in there somewhere.');
         } else {
             setEmailErrorMessage(undefined);
         }
@@ -46,7 +46,7 @@ const Signup = () => {
         let passwordErrorCount = 0;
         let tempPasswordErrorMessage = 'Password must...';
         if (password === undefined || password === "") {
-            setPasswordErrorMessage('Password is required');
+            setPasswordErrorMessage('Would you leave your home without a lock?');
             return;
         } else {
             if (password.length < 8 || password.length > 20) {
@@ -81,7 +81,7 @@ const Signup = () => {
         if (confirmPassword === password) {
             setConfirmPasswordErrorMessage(undefined);
         } else {
-            setConfirmPasswordErrorMessage('Passwords must match');
+            setConfirmPasswordErrorMessage('Passwords must match!');
         }
     }
 
