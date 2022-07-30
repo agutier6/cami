@@ -22,8 +22,10 @@ const Signup = () => {
     function validateUsername() {
         if (username === undefined || username === "") {
             setUsernameErrorMessage('A girl has no name.');
-        } else if (username.length < 5 || username.length > 20) {
-            setUsernameErrorMessage('Username must be between 5 and 20 characters. Cooked to perfection.');
+        } else if (username.length < 5) {
+            setUsernameErrorMessage('You undercook fish? Believe it or not, jail.');
+        } else if (username.length > 20) {
+            setUsernameErrorMessage('You overcook chicken, also jail. Undercook, overcook.');
         } else {
             setUsernameErrorMessage(undefined);
         }
@@ -95,7 +97,7 @@ const Signup = () => {
     return (
         <NativeBaseProvider>
             <VStack space={4} w="100%" alignItems="center" safeArea="3">
-                <FormControl isInvalid={usernameErrorMessage}>
+                <FormControl isInvalid={usernameErrorMessage} alignItems="center" safeAreaX="3">
                     <Input w={{
                         base: "75%",
                         md: "25%"
@@ -106,7 +108,7 @@ const Signup = () => {
                         {usernameErrorMessage}
                     </FormControl.ErrorMessage>
                 </FormControl>
-                <FormControl isInvalid={emailErrorMessage}>
+                <FormControl isInvalid={emailErrorMessage} alignItems="center" safeAreaX="3">
                     <Input w={{
                         base: "75%",
                         md: "25%"
@@ -117,7 +119,7 @@ const Signup = () => {
                         {emailErrorMessage}
                     </FormControl.ErrorMessage>
                 </FormControl>
-                <FormControl isInvalid={passwordErrorMessage}>
+                <FormControl isInvalid={passwordErrorMessage} alignItems="center" safeAreaX="3">
                     <Input w={{
                         base: "75%",
                         md: "25%"
@@ -128,7 +130,7 @@ const Signup = () => {
                         {passwordErrorMessage}
                     </FormControl.ErrorMessage>
                 </FormControl>
-                <FormControl isInvalid={confirmPasswordErrorMessage}>
+                <FormControl isInvalid={confirmPasswordErrorMessage} alignItems="center" safeAreaX="3">
                     <Input w={{
                         base: "75%",
                         md: "25%"

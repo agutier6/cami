@@ -1,23 +1,30 @@
-import React from 'react';
+import { React, useState } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { NativeBaseProvider, Input, Icon, VStack, Heading, Text, Link, Button, Box } from 'native-base';
 
 const Login = () => {
     const navigation = useNavigation();
-    const [show, setShow] = React.useState(false);
+    const [show, setShow] = useState(false);
+    const [username, setUsername] = useState();
+    const [password, setPassword] = useState();
+
     return (
         <NativeBaseProvider>
             <VStack space={4} w="100%" alignItems="center" safeArea="3">
                 <Input w={{
                     base: "75%",
                     md: "25%"
-                }} InputLeftElement={<Icon as={<Ionicons name="person-outline" size={24} color="muted.700" />} size={5} ml="2" color="muted.700" />} placeholder="Username" />
+                }} InputLeftElement={<Icon as={<Ionicons name="person-outline" size={24} color="muted.700" />}
+                    size={5} ml="2" color="muted.700" />} placeholder="Username"
+                    value={username} onChangeText={username => setUsername(username)} />
                 <Input w={{
                     base: "75%",
                     md: "25%"
-                }} type={show ? "text" : "password"} InputRightElement={<Icon as={<Ionicons name={show ? "eye-outline" : "eye-off-outline"} />} size={5} mr="2" color="muted.700" onPress={() => setShow(!show)} />} placeholder="Password" />
-                <Button isLoading isLoadingText="Loading" size="md" variant="outline">
+                }} type={show ? "text" : "password"} InputRightElement={<Icon as={<Ionicons name={show ? "eye-outline" : "eye-off-outline"} />}
+                    size={5} mr="2" color="muted.700" onPress={() => setShow(!show)} />} placeholder="Password"
+                    value={password} onChangeText={password => setPassword(password)} />
+                <Button size="md" variant="outline">
                     Log In
                 </Button>
                 <Box flexDirection="row">
