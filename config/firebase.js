@@ -2,6 +2,8 @@ import { initializeApp } from "firebase/app";
 import 'firebase/auth';
 // import { getAnalytics, isSupported } from "firebase/analytics";
 import Constants from 'expo-constants';
+import { getStorage } from "firebase/storage";
+
 
 const firebaseConfig = {
     apiKey: Constants.manifest?.extra?.firebaseApiKey,
@@ -11,9 +13,11 @@ const firebaseConfig = {
     messagingSenderId: Constants.manifest?.extra?.firebaseMessagingSenderId,
     appId: Constants.manifest?.extra?.firebaseAppId,
     measurementId: Constants.manifest?.extra?.firebaseMeasurementId,
+    storageBucket: Constants.manifest?.extra?.firebaseStorageBucket,
 };
 
 const app = initializeApp(firebaseConfig);
 // const analytics = isSupported(getAnalytics(app));
+const storage = getStorage(app);
 
-export default { app };
+export default { app, storage };

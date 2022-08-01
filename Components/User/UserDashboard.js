@@ -1,39 +1,62 @@
 import React, { useState, useEffect } from 'react';
-import { NativeBaseProvider, Input, Icon, VStack, Button, FormControl, KeyboardAvoidingView, Center, Image, Text } from 'native-base';
-import { getAuth, signOut, onAuthStateChanged } from 'firebase/auth';
+import { NativeBaseProvider, Input, Icon, VStack, Button, FormControl, KeyboardAvoidingView, Text, Image, Box } from 'native-base';
+import { getAuth, signOut } from 'firebase/auth';
 import { Ionicons, Entypo } from '@expo/vector-icons';
 import { useAuthentication } from '../../utils/useAuthentication';
+import { pickProfilePhoto, takeProfilePhoto } from "../../services/imagePicker";
 
 function UserDashboard() {
     const auth = getAuth();
     const [user] = useAuthentication();
     const [name, setName] = useState();
     const [email, setEmail] = useState();
-    const [photoURL, setPhotoUrl] = useState();
+    const [photoURL, setPhotoURL] = useState();
     const [emailVerified, setEmailVerified] = useState();
     const [nameErrorMessage, setNameErrorMessage] = useState();
     const [emailErrorMessage, setEmailErrorMessage] = useState();
+    const [uploading, setUploading] = useState();
+    // const [photoUrlPromise, setPhotoUrlPromise] = useState();
+
 
     useEffect(() => {
         if (user) {
+            console.log('user change');
             setName(user.displayName ? user.displayName : "");
             setEmail(user.email ? user.email : "");
-            setPhotoUrl(user.photoURL ? user.photoURL : "");
+            setPhotoURL(user.photoURL ? user.photoURL : "");
             setEmailVerified(user.emailVerified ? user.emailVerified : false);
         }
     }, [user]);
 
     return (
         <NativeBaseProvider>
-            <KeyboardAvoidingView alignItems="center" flex={1} justifyContent="center">
+            <KeyboardAvoidingView alignItems="center" >
                 <VStack space={4} w="100%" alignItems="center" safeArea="3">
-                    <Center>
-                        <Image size={150} alt="Profile Picture" borderRadius={100} source={{
-                            uri: photoURL
-                        }} fallbackSource={{
-                            uri: "https://www.w3schools.com/css/img_lights.jpg"
-                        }} />
-                    </Center>
+                    <Image size={150} alt="Profile Picture" borderRadius={100} source={{
+                        uri: photoURL
+                    }} fallbackSource={{
+                        uri: "https://www.w3schools.com/css/img_lights.jpg"
+                    }} />
+                    <Button w={{
+                        base: "75%",
+                        md: "25%"
+                    }} variant="outline"
+                        onPress={async () => {
+                            let tempPhotoUrl = await pickProfilePhoto(auth, user.uid);
+                            setPhotoURL(tempPhotoUrl ? tempPhotoUrl : user.photoURL);
+                        }}>
+                        Choose Picture
+                    </Button>
+                    <Button w={{
+                        base: "75%",
+                        md: "25%"
+                    }} variant="outline"
+                        onPress={async () => {
+                            let tempPhotoUrl = await takeProfilePhoto(auth, user.uid);
+                            setPhotoURL(tempPhotoUrl ? tempPhotoUrl : user.photoURL);
+                        }}>
+                        Take Picture
+                    </Button>
                     <FormControl isInvalid={nameErrorMessage} alignItems="center" safeAreaX="3">
                         <Input w={{
                             base: "75%",
@@ -71,7 +94,7 @@ function UserDashboard() {
                     </Button>
                 </VStack>
             </KeyboardAvoidingView>
-        </NativeBaseProvider>
+        </NativeBaseProvider >
     );
 }
 
