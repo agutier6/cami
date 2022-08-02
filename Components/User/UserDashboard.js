@@ -4,6 +4,9 @@ import { getAuth, signOut } from 'firebase/auth';
 import { Ionicons, Entypo } from '@expo/vector-icons';
 import { useAuthentication } from '../../utils/useAuthentication';
 import { pickProfilePhoto, takeProfilePhoto } from "../../services/imagePicker";
+import { validateEmail, validateName } from "../../utils/validation";
+import { changeName, changeEmail } from '../../services/updateAccount'
+import { createOneButtonAlert } from '../Alerts/OneButtonPopUp'
 
 function UserDashboard() {
     const auth = getAuth();
@@ -17,16 +20,35 @@ function UserDashboard() {
     const [uploading, setUploading] = useState();
     // const [photoUrlPromise, setPhotoUrlPromise] = useState();
 
-
     useEffect(() => {
         if (user) {
-            console.log('user change');
             setName(user.displayName ? user.displayName : "");
             setEmail(user.email ? user.email : "");
             setPhotoURL(user.photoURL ? user.photoURL : "");
             setEmailVerified(user.emailVerified ? user.emailVerified : false);
         }
     }, [user]);
+
+    async function validateAndUpdate() {
+        let nameValidated = validateName(name);
+        let emailValidated = validateEmail(email);
+        let responseMessage = '';
+        setNameErrorMessage(nameValidated)
+        setEmailErrorMessage(emailValidated);
+        if (!(emailValidated || nameValidated)) {
+            if (name != user.displayName) {
+                const responseName = await changeName(user, name);
+                responseMessage += responseName.success ? '' : responseName.message;
+            }
+            if (email != user.email) {
+                const responseEmail = await changeEmail(user, email);
+                responseMessage += responseEmail.success ? '' : responseEmail.message;
+            }
+            if (responseMessage.length > 0) {
+                createOneButtonAlert('Error', 'You Brittaed it. ' + responseMessage, 'Try Again');
+            }
+        }
+    };
 
     return (
         <NativeBaseProvider>
@@ -42,7 +64,7 @@ function UserDashboard() {
                         md: "25%"
                     }} variant="outline"
                         onPress={async () => {
-                            let tempPhotoUrl = await pickProfilePhoto(auth, user.uid);
+                            let tempPhotoUrl = await pickProfilePhoto(user, user.uid);
                             setPhotoURL(tempPhotoUrl ? tempPhotoUrl : user.photoURL);
                         }}>
                         Choose Picture
@@ -52,7 +74,7 @@ function UserDashboard() {
                         md: "25%"
                     }} variant="outline"
                         onPress={async () => {
-                            let tempPhotoUrl = await takeProfilePhoto(auth, user.uid);
+                            let tempPhotoUrl = await takeProfilePhoto(user, user.uid);
                             setPhotoURL(tempPhotoUrl ? tempPhotoUrl : user.photoURL);
                         }}>
                         Take Picture
@@ -82,7 +104,8 @@ function UserDashboard() {
                     <Button w={{
                         base: "75%",
                         md: "25%"
-                    }} variant="outline">
+                    }} variant="outline"
+                        onPress={() => validateAndUpdate()}>
                         Update
                     </Button>
                     <Button w={{

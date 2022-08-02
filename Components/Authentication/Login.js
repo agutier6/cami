@@ -4,6 +4,8 @@ import { Ionicons, Entypo } from '@expo/vector-icons';
 import { NativeBaseProvider, Input, Icon, VStack, Heading, Text, Link, Button, Box, KeyboardAvoidingView, FormControl } from 'native-base';
 import { signIn } from '../../services/signIn';
 import { getAuth } from 'firebase/auth';
+import { validateEmail } from '../../utils/validation';
+import { createOneButtonAlert } from '../Alerts/OneButtonPopUp';
 
 const Login = () => {
     const navigation = useNavigation();
@@ -14,26 +16,10 @@ const Login = () => {
     const auth = getAuth();
 
 
-    function validateEmail() {
-        const reg = new RegExp(/^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w\w+)+$/);
-        if (email === undefined || email === "") {
-            setEmailErrorMessage('It\'s the 21st century. You must have an email.');
-            return false;
-        } else if (email.length > 320) {
-            setEmailErrorMessage('Not even Mr. Bonzu Pippinpaddle Oppsokopolis the Third has such a long email!');
-            return false;
-        } else if (reg.test(email) === false) {
-            setEmailErrorMessage('Hint: It should have an @ and a . in there somewhere.');
-            return false;
-        } else {
-            setEmailErrorMessage(undefined);
-            return true;
-        }
-    };
-
-    async function validateAll() {
-        let emailValidation = validateEmail();
-        if (emailValidation) {
+    async function validateAndLogIn() {
+        let emailValidated = validateEmail(email);
+        setEmailErrorMessage(emailValidated);
+        if (!emailValidated) {
             let response = await signIn(auth, email, password);
             if (!response.success) {
                 createOneButtonAlert('Error', response.message, 'Try Again');
@@ -63,7 +49,7 @@ const Login = () => {
                         }} type={show ? "text" : "password"} InputRightElement={<Icon as={<Ionicons name={show ? "eye-outline" : "eye-off-outline"} />}
                             size={5} mr="2" color="muted.700" onPress={() => setShow(!show)} />} placeholder="Password"
                             value={password} onChangeText={password => setPassword(password)} />
-                        <Button onPress={() => { validateAll() }} size="md" variant="outline">
+                        <Button onPress={() => { validateAndLogIn() }} size="md" variant="outline">
                             Log In
                         </Button>
                         <Box flexDirection="row">
