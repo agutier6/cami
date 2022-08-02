@@ -8,6 +8,7 @@ export async function signUp(auth, email, password, name) {
   if (email === '' || password === '' || name === '') {
     response.message = 'You Brittaed it. Name, email and password are mandatory.'
     console.log(response.message);
+    response.success = false;
   } else {
     try {
       await createUserWithEmailAndPassword(auth, email, password)
@@ -16,11 +17,13 @@ export async function signUp(auth, email, password, name) {
         photoURL: "https://www.w3schools.com/css/img_lights.jpg"
       }).catch((error) => {
         response.message = error.message;
+        response.success = false;
         console.log(response.message);
       });
     } catch (error) {
       response.message = error.message;
       console.log(response.message);
+      response.success = false;
     }
   }
   return {

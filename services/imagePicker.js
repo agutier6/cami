@@ -5,9 +5,7 @@ import { updateProfile } from 'firebase/auth'
 async function handleImagePicked(pickerResult, uploadPath) {
     try {
         if (!pickerResult.cancelled) {
-            const uploadUrl = await uploadImageAsync(pickerResult.uri, uploadPath);
-            console.log('2: ' + uploadUrl);
-            return uploadUrl;
+            return await uploadImageAsync(pickerResult.uri, uploadPath);
         }
     } catch (e) {
         console.log(e);
@@ -20,7 +18,6 @@ export async function takePicture(uploadPath) {
         allowsEditing: true,
         aspect: [1, 1],
     });
-    console.log("taking a photo");
     return handleImagePicked(pickerResult, uploadPath);
 };
 
@@ -29,36 +26,30 @@ export async function pickImage(uploadPath) {
         allowsEditing: true,
         aspect: [1, 1],
     });
-    console.log("just picking... ");
     return handleImagePicked(pickerResult, uploadPath);
 };
 
-export async function pickProfilePhoto(auth, userId) {
+export async function pickProfilePhoto(user, userId) {
     const photoURL = await pickImage(`users/${userId}/profilePic`);
-    console.log('dkrkrkrkrkrkrkrkrk');
-    updateProfilePhotoURL(auth, photoURL);
+    updateProfilePhotoURL(user, photoURL);
     return photoURL;
 }
 
-export async function takeProfilePhoto(auth, userId) {
+export async function takeProfilePhoto(user, userId) {
     const photoURL = await takePicture(`users/${userId}/profilePic`);
-    updateProfilePhotoURL(auth, photoURL);
+    updateProfilePhotoURL(user, photoURL);
     return photoURL;
 }
 
-export async function updateProfilePhotoURL(auth, photoURL) {
-    console.log(photoURL);
-
+export async function updateProfilePhotoURL(user, photoURL) {
     if (photoURL) {
-        updateProfile(auth.currentUser, {
+        updateProfile(user, {
             photoURL: photoURL
-        }).then(() => {
-            console.log('Profile Picture Uploaded:' + photoURL);
         }).catch((error) => {
-            console.log(error);
+            alert('Upload failed, sorry');
         });
     } else {
-        console.log('No photo url');
+        alert('Photo URL not found');
     }
 }
 
@@ -82,7 +73,6 @@ async function uploadImageAsync(uri, uploadPath) {
 
     const uploadTask = await uploadBytes(storageRef, blob).then(async (snapshot) => {
         const url = await getDownloadURL(snapshot.ref);
-        console.log('hello: ' + url);
         return url;
     });
     return uploadTask;

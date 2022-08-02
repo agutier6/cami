@@ -5,7 +5,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { NativeBaseProvider, Input, Icon, VStack, Link, Button, Box, FormControl, KeyboardAvoidingView } from 'native-base';
 import { signUp } from '../../services/signUp';
 import { getAuth } from 'firebase/auth';
-import { createOneButtonAlert } from '../Alerts/OneButtonPopUp'
+import { createOneButtonAlert } from '../Alerts/OneButtonPopUp';
+import { validateConfirmPassword, validateEmail, validateName, validatePassword } from '../../utils/validation';
 
 const Signup = () => {
     const auth = getAuth();
@@ -24,92 +25,16 @@ const Signup = () => {
     const [password, setPassword] = useState();
     const [confirmPassword, setConfirmPassword] = useState();
 
-    function validateName() {
-        if (name === undefined || name === "") {
-            setNameErrorMessage('A girl has no name.');
-            return false;
-        } else if (name.length < 5) {
-            setNameErrorMessage('You undercook fish? Believe it or not, jail.');
-            return false;
-        } else if (name.length > 50) {
-            setNameErrorMessage('You overcook chicken, also jail. Undercook, overcook.');
-            return false;
-        } else {
-            setNameErrorMessage(undefined);
-            return true;
-        }
-    };
-
-    function validateEmail() {
-        const reg = new RegExp(/^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w\w+)+$/);
-        if (email === undefined || email === "") {
-            setEmailErrorMessage('It\'s the 21st century. You must have an email.');
-            return false;
-        } else if (email.length > 320) {
-            setEmailErrorMessage('Not even Mr. Bonzu Pippinpaddle Oppsokopolis the Third has such a long email!');
-            return false;
-        } else if (reg.test(email) === false) {
-            setEmailErrorMessage('Hint: It should have an @ and a . in there somewhere.');
-            return false;
-        } else {
-            setEmailErrorMessage(undefined);
-            return true;
-        }
-    };
-
-    function validatePassword() {
-        let passwordErrorCount = 0;
-        let tempPasswordErrorMessage = 'Password must...';
-        if (password === undefined || password === "") {
-            setPasswordErrorMessage('Would you leave your home without a lock?');
-            return false;;
-        } else {
-            if (password.length < 8 || password.length > 20) {
-                tempPasswordErrorMessage += '\n be betweeen 8 and 20 characters ';
-                passwordErrorCount += 1;
-            }
-            if (!/[A-Z]/.test(password)) {
-                tempPasswordErrorMessage += '\n contain at least one UPPERCASE character ';
-                passwordErrorCount += 1;
-            }
-            if (!/[a-z]/.test(password)) {
-                tempPasswordErrorMessage += '\n contain at least one lowercase character ';
-                passwordErrorCount += 1;
-            }
-            if (!/[0-9]/.test(password)) {
-                tempPasswordErrorMessage += '\n contain at least one number';
-                passwordErrorCount += 1;
-            }
-            if (!/[^A-Za-z0-9]/.test(password)) {
-                tempPasswordErrorMessage += '\n contain at least one special character';
-                passwordErrorCount += 1;
-            }
-        }
-        if (passwordErrorCount == 0) {
-            setPasswordErrorMessage(undefined);
-            return true;
-        } else {
-            setPasswordErrorMessage(tempPasswordErrorMessage);
-            return false;
-        }
-    }
-
-    function validateConfirmPassword() {
-        if (confirmPassword === password) {
-            setConfirmPasswordErrorMessage(undefined);
-            return true;
-        } else {
-            setConfirmPasswordErrorMessage('Passwords must match!');
-            return false;
-        }
-    }
-
-    async function validateAll() {
-        let nameValidated = validateName();
-        let emailValidated = validateEmail();
-        let passwordValidated = validatePassword();
-        let confirmPasswordValidated = validateConfirmPassword();
-        if (nameValidated && emailValidated && passwordValidated && confirmPasswordValidated) {
+    async function validateAndSignUp() {
+        let nameValidated = validateName(name);
+        let emailValidated = validateEmail(email);
+        let passwordValidated = validatePassword(password);
+        let confirmPasswordValidated = validateConfirmPassword(password, confirmPassword);
+        setNameErrorMessage(nameValidated);
+        setEmailErrorMessage(emailValidated);
+        setPasswordErrorMessage(passwordValidated);
+        setConfirmPasswordErrorMessage(confirmPasswordValidated);
+        if (!(nameValidated || emailValidated || passwordValidated || confirmPasswordValidated)) {
             let response = await signUp(auth, email, password, name);
             if (!response.success) {
                 createOneButtonAlert('Error', response.message, 'Try Again');
@@ -165,7 +90,7 @@ const Signup = () => {
                             {confirmPasswordErrorMessage}
                         </FormControl.ErrorMessage>
                     </FormControl>
-                    <Button onPress={() => { validateAll() }} size="md" variant="outline">
+                    <Button onPress={() => { validateAndSignUp() }} size="md" variant="outline">
                         Sign Up
                     </Button>
                     <Box flexDirection="row">
