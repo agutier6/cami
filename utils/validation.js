@@ -58,7 +58,6 @@ export function validatePassword(password) {
 }
 
 export function validateConfirmPassword(password, confirmPassword) {
-    console.log(password, confirmPassword);
     if (confirmPassword === password) {
         return false;
     } else {
