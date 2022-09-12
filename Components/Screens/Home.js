@@ -1,24 +1,16 @@
 import React from 'react';
-import { NativeBaseProvider, Button } from 'native-base';
-import { useNavigation } from '@react-navigation/native';
-import { AntDesignHeaderButtons } from '../Navigation/MyHeaderButtons.js';
-import { Item } from 'react-navigation-header-buttons';
 import ExploreMain from '../Explore/ExploreMain.js';
+import UserDashboard from '../User/UserDashboard';
+import { createStackNavigator } from '@react-navigation/stack';
+
+const Stack = createStackNavigator();
+
 function Home() {
-    const navigation = useNavigation();
-
-    React.useLayoutEffect(() => {
-        navigation.setOptions({
-            headerRight: () => (
-                <AntDesignHeaderButtons>
-                    <Item title="add" iconName="user" onPress={() => navigation.navigate("User Dashboard")} />
-                </AntDesignHeaderButtons>
-            ),
-        });
-    }, [navigation]);
-
     return (
-        <ExploreMain />
+        <Stack.Navigator>
+            <Stack.Screen name="Explore" component={ExploreMain} />
+            <Stack.Screen name="User Dashboard" component={UserDashboard} />
+        </Stack.Navigator>
     );
 }
 

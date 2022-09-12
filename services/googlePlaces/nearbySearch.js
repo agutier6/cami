@@ -11,5 +11,6 @@ export function nearbySearchByProminence(lat, long, keyword, language, minprice,
         '&maxprice' + maxprice +
         '&language' + language +
         '&key=' + Constants.manifest?.extra?.placesApiKey;
+    console.log('NearbySearch: ', url);
     return axios.get(url);
 }
