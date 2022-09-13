@@ -1,9 +1,9 @@
-import { Box, AspectRatio, Center, Stack, Heading, Text, HStack, Spinner, Flex } from 'native-base';
-import { Rating } from 'react-native-ratings';
+import { Box, AspectRatio, Center, Stack, Heading, HStack, Spinner, Image, Text } from 'native-base';
 import Constants from 'expo-constants';
 import React, { useState, useEffect } from 'react';
 import { getPlaceDetails } from '../../services/googlePlaces/getPlaceDetails';
-import { Dimensions, ImageBackground } from 'react-native';
+import { Dimensions } from 'react-native';
+import { AirbnbRating } from 'react-native-ratings';
 
 export const ExploreCard = ({ placeId }) => {
     const [placeDetails, setPlaceDetails] = useState();
@@ -56,61 +56,49 @@ export const ExploreCard = ({ placeId }) => {
             }} _light={{
                 backgroundColor: "gray.50"
             }}>
-                <AspectRatio w="100%" ratio={Dimensions.get('window').width / Dimensions.get('window').height * 0.8}>
-                    <ImageBackground style={{
-                        flex: 1,
-                        justifyContent: 'flex-end',
-                    }} source={{
+                <AspectRatio w="100%" ratio={Dimensions.get('window').width / (Dimensions.get('window').height * 0.8)}>
+                    <Image source={{
                         uri: `https://maps.googleapis.com/maps/api/place/photo?photo_reference=${placeDetails.photos[0].photo_reference}&key=${Constants.manifest?.extra?.placesApiKey}&maxwidth=1600`
-                    }} alt="image">
-                        <Heading size="xl" color="white">
-                            {placeDetails.name}
-                        </Heading>
-                        <Heading size="xl" color="white">
-                            {placeDetails.rating}
-                        </Heading>
-                        {/* <Stack justifyContent="flex-end" p="4" space={3}>
-                            <Stack space={2}>
-                                
-                                <HStack alignItems="center" space={4} justifyContent="space-between">
-                                    <Rating
-                                        type='star'
-                                        ratingCount={5}
-                                        imageSize={60}
-                                        showRating
-                                        startingValue={placeDetails.rating}
-                                        isDisabled
-                                    />
-                                    <Text fontSize="xs" _light={{
-                                        color: "violet.500"
-                                    }} _dark={{
-                                        color: "violet.400"
-                                    }} fontWeight="500" ml="-0.5" mt="-1">
-                                        {placeDetails.rating}
-                                    </Text>
-                                </HStack>
-                            </Stack>
-                            <HStack alignItems="center" space={4} justifyContent="space-between">
-                                <HStack alignItems="center">
-                                    <Text color="coolGray.600" _dark={{
-                                        color: "warmGray.200"
-                                    }} fontWeight="400">
-                                        6 mins ago
-                                    </Text>
-                                </HStack>
-                            </HStack>
-                        </Stack> */}
-                    </ImageBackground>
+                    }} alt="image" />
                 </AspectRatio>
-                {/* <Center bg="violet.500" _dark={{
-                    bg: "violet.400"
-                }} _text={{
-                    color: "warmGray.50",
-                    fontWeight: "700",
-                    fontSize: "xs"
-                }} position="absolute" bottom="0" px="3" py="1.5">
-                    PHOTOS
-                </Center> */}
+                <Center mb="3" position="absolute" bottom="0" px="3" py="1.5">
+                    <Stack>
+                        <Heading size="2xl" color="white">{placeDetails.name}</Heading>
+                        <HStack px="2" alignItems="flex-start" space={1} justifyContent="flex-start">
+                            <Text fontSize="lg" _light={{
+                                color: "warmGray.100"
+                            }} _dark={{
+                                color: "warmGray.100"
+                            }} fontWeight="500" mt="-1">
+                                {placeDetails.rating}
+                            </Text>
+                            <AirbnbRating
+                                defaultRating={placeDetails.rating}
+                                count={placeDetails.rating}
+                                selectedColor="white"
+                                size={15}
+                                showRating={false}
+                                isDisabled={true}
+                                ratingContainerStyle={{ margin: 0, padding: 0 }}
+                                starContainerStyle={{ margin: 0, padding: 0 }}
+                            />
+                            <Text fontSize="lg" _light={{
+                                color: "warmGray.100"
+                            }} _dark={{
+                                color: "warmGray.100"
+                            }} fontWeight="500" ml="3" mt="-1">
+                                {placeDetails.user_ratings_total} reviews
+                            </Text>
+                            <Text fontSize="lg" _light={{
+                                color: "warmGray.100"
+                            }} _dark={{
+                                color: "warmGray.100"
+                            }} fontWeight="500" ml="3" mt="-1">
+                                {'$'.repeat(placeDetails.price_level)}
+                            </Text>
+                        </HStack>
+                    </Stack>
+                </Center>
             </Box>
             {/* <Box h="40%" mx="4" rounded="lg" overflow="hidden" borderColor="coolGray.200" borderWidth="1" _dark={{
                 borderColor: "coolGray.600",

@@ -1,19 +1,24 @@
 import React, { useState, useEffect } from 'react';
 import * as Location from 'expo-location';
 import ExploreSwipe from './ExploreSwipe';
-import { NativeBaseProvider, Box, Spinner, HStack } from 'native-base';
+import { Box, Spinner, HStack } from 'native-base';
 import { useNavigation } from '@react-navigation/native';
 import { AntDesignHeaderButtons } from '../Navigation/MyHeaderButtons.js';
 import { Item } from 'react-navigation-header-buttons';
+import { useDispatch } from 'react-redux';
+import { openFilterModal } from './exploreFilterSlice';
+import { ExploreFilterModal } from './ExploreFilterModal';
 
 function ExploreMain() {
     const [location, setLocation] = useState(null);
     const navigation = useNavigation();
+    const dispatch = useDispatch();
 
     React.useLayoutEffect(() => {
         navigation.setOptions({
             headerRight: () => (
                 <AntDesignHeaderButtons>
+                    <Item title="explore-filter" iconName="filter" onPress={() => dispatch(openFilterModal())} />
                     <Item title="user-dashboard" iconName="user" onPress={() => navigation.navigate("User Dashboard")} />
                 </AntDesignHeaderButtons>
             ),
@@ -42,16 +47,17 @@ function ExploreMain() {
 
 
     if (location) {
-        return <ExploreSwipe location={location.coords} />;
+        return (<>
+            <ExploreFilterModal />
+            <ExploreSwipe location={location.coords} />
+        </>);
     } else {
         return (
-            <NativeBaseProvider>
-                <Box justifyContent="center" alignItems="center">
-                    <HStack space={8} justifyContent="center" alignItems="center">
-                        <Spinner size="lg" />
-                    </HStack>
-                </Box>
-            </NativeBaseProvider>
+            <Box justifyContent="center" alignItems="center">
+                <HStack space={8} justifyContent="center" alignItems="center">
+                    <Spinner size="lg" />
+                </HStack>
+            </Box>
         );
     }
 }

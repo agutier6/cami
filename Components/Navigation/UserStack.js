@@ -2,6 +2,7 @@ import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Ionicons } from '@expo/vector-icons';
+import { theme } from '../../styles/theme';
 
 import Home from '../Screens/Home';
 import Chat from '../Screens/Chat';
@@ -25,7 +26,8 @@ export default function UserStack() {
                     },
                     tabBarHideOnKeyboard: true,
                     tabBarStyle: { padding: 10, height: 70 },
-                    tabBarLabelStyle: { paddingBottom: 10, fontSize: 12 }
+                    tabBarLabelStyle: { paddingBottom: 10, fontSize: 12 },
+                    tabBarActiveTintColor: theme.colors.primary.p500
                 })}>
                 <Tab.Screen name='Home' component={Home} options={{ headerShown: false }} />
                 <Tab.Screen name='Chat' component={Chat} />
