@@ -1,6 +1,6 @@
 import React from 'react'
 import { useSelector, useDispatch } from 'react-redux'
-import { Center, Modal, FormControl, Input, Button, Slider, Text, HStack, Switch } from 'native-base';
+import { Center, Modal, FormControl, Button, Slider, Text, HStack, Switch } from 'native-base';
 import {
     changeRadius,
     changeMinPrice,
@@ -19,7 +19,7 @@ import {
     openFilterModal,
     selectUnits,
     toggleUnits
-} from './exploreFilterSlice';
+} from './exploreSlice';
 import { Dimensions } from 'react-native';
 
 export const ExploreFilterModal = () => {

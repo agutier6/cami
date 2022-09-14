@@ -6,7 +6,7 @@ import { useNavigation } from '@react-navigation/native';
 import { AntDesignHeaderButtons } from '../Navigation/MyHeaderButtons.js';
 import { Item } from 'react-navigation-header-buttons';
 import { useDispatch } from 'react-redux';
-import { openFilterModal } from './exploreFilterSlice';
+import { openFilterModal } from './exploreSlice';
 import { ExploreFilterModal } from './ExploreFilterModal';
 
 function ExploreMain() {

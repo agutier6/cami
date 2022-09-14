@@ -1,8 +1,8 @@
 import { configureStore } from '@reduxjs/toolkit';
-import exploreFilterReducer from '../Components/Explore/exploreFilterSlice';
+import exploreReducer from '../Components/Explore/exploreSlice';
 
 export default configureStore({
     reducer: {
-        exploreFilter: exploreFilterReducer
+        explore: exploreReducer
     }
 })

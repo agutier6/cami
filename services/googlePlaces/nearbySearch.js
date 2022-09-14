@@ -14,3 +14,9 @@ export function nearbySearchByProminence(lat, long, radius, type, keyword, minpr
     console.log('NearbySearch: ', url);
     return axios.get(url);
 }
+
+export function nearbySearchWithNextPageToken(oldUrl, nextPageToken) {
+    const newUrl = oldUrl + '&pagetoken=' + nextPageToken;
+    console.log('NextPage: ', newUrl);
+    return axios.get(url);
+}
