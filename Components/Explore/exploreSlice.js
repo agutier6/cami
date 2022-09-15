@@ -79,6 +79,10 @@ export const exploreReducer = createSlice({
         },
         toggleUnits: (state) => {
             state.units = !state.units;
+        },
+        popPlaceDetails: (state) => {
+            state.placeDetails.pop();
+            console.log(state.placeDetails.map(item => item.name));
         }
     },
     extraReducers(builder) {
@@ -101,7 +105,7 @@ export const exploreReducer = createSlice({
             })
             .addCase(fetchPlaceDetails.fulfilled, (state, action) => {
                 state.placeDetailsStatus = 'succeeded';
-                state.placeDetails.push(action.payload.result);
+                state.placeDetails.unshift(action.payload.result);
                 state.placeCount++;
                 // if (state.placeDetails.length > 10) {
                 //     state.placeDetails.shift();
@@ -123,7 +127,8 @@ export const { changeRadius,
     removeKeyword,
     openFilterModal,
     closeFilterModal,
-    toggleUnits
+    toggleUnits,
+    popPlaceDetails
 } = exploreReducer.actions
 
 export const selectRadius = state => state.explore.radius

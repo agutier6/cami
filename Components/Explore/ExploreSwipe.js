@@ -1,9 +1,8 @@
-import React, { useEffect, useState } from 'react'
-import { Box, VStack, Skeleton, Text, Center } from 'native-base';
+import React, { useEffect } from 'react'
 import { ExploreCard } from './ExploreCard';
 import { useSelector, useDispatch } from 'react-redux';
 import { fetchPlaceIds, fetchPlaceDetails, selectPlaceIdStatus, selectPlaceIdError, selectPlaceDetails, selectPlaceDetailsStatus, selectPageSize, selectPlaceCount } from './exploreSlice';
-import { FlatList } from 'native-base';
+import CardSkeleton from './CardSkeleton';
 
 const ExploreSwipe = ({ location }) => {
     const placeIdStatus = useSelector(selectPlaceIdStatus);
@@ -25,17 +24,10 @@ const ExploreSwipe = ({ location }) => {
         }
     }, [placeIdStatus, dispatch,]);
 
-    const renderItem = ({ item }) => (
-        <ExploreCard placeDetail={item} />
-    );
-    const renderEmpty = () => (
-        <Text>No more data</Text>
-    );
-
     const fetchMoreData = () => {
         if (placeIdStatus === 'succeeded' && placeDetailsStatus != 'loading') {
             dispatch(fetchPlaceDetails({ placeCount }));
-            if (placeCount > pageSize - 2) {
+            if (placeCount > pageSize - 5) {
                 dispatch(fetchPlaceIds({ lat, long }));
             }
         }
@@ -45,32 +37,18 @@ const ExploreSwipe = ({ location }) => {
         console.log(placeIdError);
     }
 
-    if (placeDetails.length > 0) {
+    if (placeDetails.length > 3) {// if these number changes the refresh page id number also needs to change (make a constant later)
         return (
-            <FlatList
-                data={placeDetails}
-                renderItem={renderItem}
-                ListEmptyComponent={renderEmpty}
-                // onEndReachedThreshold={0.2}
-                onEndReached={fetchMoreData}
-            />
+            placeDetails.map((item) => {
+                return <ExploreCard placeDetail={item} lat={lat} long={long} key={item ? item.place_id : placeCount} />
+            })
         );
+    } else if (placeDetails.length > 0) {
+        fetchMoreData();
     }
 
     return (
-        <Box>
-            <Center w="100%">
-                <VStack w="90%" maxW="400" borderWidth="1" space={8} overflow="hidden" rounded="md" _dark={{
-                    borderColor: "coolGray.500"
-                }} _light={{
-                    borderColor: "coolGray.200"
-                }}>
-                    <Skeleton h="40" />
-                    <Skeleton.Text px="4" />
-                    <Skeleton px="4" my="4" rounded="md" startColor="primary.100" />
-                </VStack>
-            </Center>
-        </Box>
+        <CardSkeleton />
     )
 }
 
