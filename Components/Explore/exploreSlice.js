@@ -16,7 +16,7 @@ export const fetchPlaceIds = createAsyncThunk('exploreInfinite/fetchPlaceIds', a
 
 export const fetchPlaceDetails = createAsyncThunk('exploreInfinite/fetchPlaceDetails', async ({ count }, { getState }) => {
     const state = getState();
-    const response = await getPlaceDetails(state.explore.placeIds[state.explore.placeCount]);
+    const response = await getPlaceDetails(state.explore.placeIds[state.explore.bufferPointer]);
     return response.data;
 })
 
@@ -31,14 +31,17 @@ export const exploreReducer = createSlice({
         filterModalVisible: false,
         units: true, //true is miles false is km
         placeIds: [],
-        placeDetails: [],
+        placeDetails: null,
         nextPageToken: null,
         pageSize: 0,
         placeIdStatus: 'idle',
         placeIdError: null,
         placeDetailsStatus: 'idle',
         placeDetailsError: null,
-        placeCount: 0
+        bufferPointer: 0,
+        needMoreData: false,
+        buffer: [],
+        nearbySearchEndReached: false
     },
     reducers: {
         changeRadius: (state, action) => {
@@ -80,9 +83,18 @@ export const exploreReducer = createSlice({
         toggleUnits: (state) => {
             state.units = !state.units;
         },
-        popPlaceDetails: (state) => {
-            state.placeDetails.pop();
-            console.log(state.placeDetails.map(item => item.name));
+        concatBuffer: (state) => {
+            state.buffer = state.placeIds.slice(0, 4).reverse().concat(state.buffer);
+            state.bufferPointer = 4;
+        },
+        swipe: (state) => {
+            if (state.bufferPointer < state.pageSize) {
+                state.buffer.unshift(state.placeIds[state.bufferPointer]);
+                state.bufferPointer++;
+                if (state.bufferPointer > state.pageSize - 2) {
+                    state.needMoreData = true;
+                }
+            }
         }
     },
     extraReducers(builder) {
@@ -91,29 +103,38 @@ export const exploreReducer = createSlice({
                 state.placeIdStatus = 'loading';
             })
             .addCase(fetchPlaceIds.fulfilled, (state, action) => {
-                state.placeIdStatus = 'succeeded';
-                state.pageSize = action.payload.results.length
-                state.placeIds = state.placeIds.concat(action.payload.results.map(result => result.place_id));
                 state.nextPageToken = action.payload.next_page_token ? action.payload.next_page_token : null;
+                if (state.pageSize > 0 && !state.nextPageToken) {
+                    state.nearbySearchEndReached = true;
+                }
+                state.pageSize += action.payload.results.length;
+                state.placeIds = state.placeIds.concat(action.payload.results.map(result => {
+                    return {
+                        "place_id": result.place_id,
+                        "name": result.name,
+                        "rating": result.rating,
+                        "user_ratings_total": result.user_ratings_total,
+                        "price_level": result.price_level,
+                        "photos": result.photos
+                    }
+                }))
+                state.needMoreData = false;
+                state.placeIdStatus = 'succeeded';
             })
             .addCase(fetchPlaceIds.rejected, (state, action) => {
-                state.placeIdStatus = 'failed';
                 state.placeIdError = action.error.message;
+                state.placeIdStatus = 'failed';
             })
             .addCase(fetchPlaceDetails.pending, (state, action) => {
                 state.placeDetailsStatus = 'loading';
             })
             .addCase(fetchPlaceDetails.fulfilled, (state, action) => {
+                state.placeDetails = action.payload.result;
                 state.placeDetailsStatus = 'succeeded';
-                state.placeDetails.unshift(action.payload.result);
-                state.placeCount++;
-                // if (state.placeDetails.length > 10) {
-                //     state.placeDetails.shift();
-                // }
             })
             .addCase(fetchPlaceDetails.rejected, (state, action) => {
-                state.placeDetailsStatus = 'failed';
                 state.placeDetailsError = action.error.message;
+                state.placeDetailsStatus = 'failed';
             })
     }
 })
@@ -128,7 +149,8 @@ export const { changeRadius,
     openFilterModal,
     closeFilterModal,
     toggleUnits,
-    popPlaceDetails
+    concatBuffer,
+    swipe
 } = exploreReducer.actions
 
 export const selectRadius = state => state.explore.radius
@@ -138,13 +160,15 @@ export const selectMinPrice = state => state.explore.minPrice
 export const selectMaxPrice = state => state.explore.maxPrice
 export const selectFilterModalVisible = state => state.explore.filterModalVisible
 export const selectUnits = state => state.explore.units
-// export const selectPlaceIds = state => state.explore.placeIds
+export const selectPlaceIds = state => state.explore.placeIds
 export const selectPlaceIdStatus = state => state.explore.placeIdStatus
 export const selectPlaceIdError = state => state.explore.placeIdError
 export const selectPlaceDetails = state => state.explore.placeDetails
 export const selectPlaceDetailsStatus = state => state.explore.placeDetailsStatus
 export const selectPlaceDetailsError = state => state.explore.placeDetailsError
 export const selectPageSize = state => state.explore.pageSize
-export const selectPlaceCount = state => state.explore.placeCount
+export const selectExploreBuffer = state => state.explore.buffer
+export const selectNeedMoreData = state => state.explore.needMoreData
+export const selectNearbySearchEndReached = state => state.explore.nearbySearchEndReached
 
 export default exploreReducer.reducer

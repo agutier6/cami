@@ -1,7 +1,7 @@
-import React, { useEffect } from 'react'
+import React, { useEffect, useState } from 'react'
 import { ExploreCard } from './ExploreCard';
 import { useSelector, useDispatch } from 'react-redux';
-import { fetchPlaceIds, fetchPlaceDetails, selectPlaceIdStatus, selectPlaceIdError, selectPlaceDetails, selectPlaceDetailsStatus, selectPageSize, selectPlaceCount } from './exploreSlice';
+import { fetchPlaceIds, selectPlaceIdStatus, selectPlaceIdError, selectNeedMoreData, selectExploreBuffer, concatBuffer, selectNearbySearchEndReached } from './exploreSlice';
 import CardSkeleton from './CardSkeleton';
 
 const ExploreSwipe = ({ location }) => {
@@ -10,41 +10,41 @@ const ExploreSwipe = ({ location }) => {
     const dispatch = useDispatch();
     const lat = location.latitude;
     const long = location.longitude;
-    const placeDetails = useSelector(selectPlaceDetails);
-    const placeDetailsStatus = useSelector(selectPlaceDetailsStatus);
-    const pageSize = useSelector(selectPageSize);
-    const placeCount = useSelector(selectPlaceCount);
+    const [errorIds, setErrorIds] = useState(-1);
+    const needMoreData = useSelector(selectNeedMoreData);
+    const buffer = useSelector(selectExploreBuffer);
+    const nearbySearchEndReached = useSelector(selectNearbySearchEndReached);
 
     useEffect(() => {
         if (placeIdStatus === 'idle') {
             dispatch(fetchPlaceIds({ lat, long }));
         }
-        if (placeIdStatus === 'succeeded') {
-            dispatch(fetchPlaceDetails({ placeCount }));
+        if (placeIdStatus === 'succeeded' && buffer.length === 0) {
+            dispatch(concatBuffer());
         }
     }, [placeIdStatus, dispatch,]);
 
-    const fetchMoreData = () => {
-        if (placeIdStatus === 'succeeded' && placeDetailsStatus != 'loading') {
-            dispatch(fetchPlaceDetails({ placeCount }));
-            if (placeCount > pageSize - 5) {
-                dispatch(fetchPlaceIds({ lat, long }));
-            }
+    useEffect(() => {
+        if (needMoreData && placeIdStatus != 'loading' && !nearbySearchEndReached) {
+            dispatch(fetchPlaceIds({ lat, long }));
         }
-    }
+    }, [needMoreData]);
 
     if (placeIdStatus === 'failed') {
         console.log(placeIdError);
     }
 
-    if (placeDetails.length > 3) {// if these number changes the refresh page id number also needs to change (make a constant later)
+    if (buffer.length > 0) {
         return (
-            placeDetails.map((item) => {
-                return <ExploreCard placeDetail={item} lat={lat} long={long} key={item ? item.place_id : placeCount} />
+            buffer.map((item) => {
+                if (item) {
+                    return <ExploreCard place={item} lat={lat} long={long} key={item.place_id} />
+                } else {
+                    setErrorIds(errorIds + 1);
+                    return <CardSkeleton key={errorIds} />;
+                }
             })
         );
-    } else if (placeDetails.length > 0) {
-        fetchMoreData();
     }
 
     return (
