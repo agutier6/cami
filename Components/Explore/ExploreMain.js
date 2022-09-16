@@ -1,14 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import * as Location from 'expo-location';
 import ExploreSwipe from './ExploreSwipe';
-import { Box, Center, VStack, Skeleton } from 'native-base';
 import { useNavigation } from '@react-navigation/native';
 import { AntDesignHeaderButtons } from '../Navigation/MyHeaderButtons.js';
 import { Item } from 'react-navigation-header-buttons';
 import { useDispatch } from 'react-redux';
 import { openFilterModal } from './exploreSlice';
 import { ExploreFilterModal } from './ExploreFilterModal';
-import { Dimensions } from 'react-native';
+import CardSkeleton from './CardSkeleton';
 
 function ExploreMain() {
     const [location, setLocation] = useState(null);
@@ -51,18 +50,7 @@ function ExploreMain() {
         </>);
     } else {
         return (
-            <Box>
-                <Center w="100%">
-                    <VStack w="100%" maxW="400" borderWidth="1" space={8} overflow="hidden" rounded="2xl" _dark={{
-                        borderColor: "coolGray.500"
-                    }} _light={{
-                        borderColor: "coolGray.200"
-                    }}>
-                        <Skeleton h={Dimensions.get('window').height * 0.5} />
-                        <Skeleton.Text h={Dimensions.get('window').height * 0.2} px="4" />
-                    </VStack>
-                </Center>
-            </Box>
+            <CardSkeleton />
         );
     }
 }

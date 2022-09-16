@@ -2,6 +2,9 @@ import { createSlice, createAsyncThunk } from '@reduxjs/toolkit'
 import { getPlaceDetails } from '../../services/googlePlaces/getPlaceDetails';
 import { nearbySearchByProminence, nearbySearchWithNextPageToken } from '../../services/googlePlaces/nearbySearch';
 
+const bufferSize = 4;
+const fetchOffset = 3;
+
 export const fetchPlaceIds = createAsyncThunk('exploreInfinite/fetchPlaceIds', async ({ lat, long }, { getState }) => {
     const state = getState();
 
@@ -16,7 +19,7 @@ export const fetchPlaceIds = createAsyncThunk('exploreInfinite/fetchPlaceIds', a
 
 export const fetchPlaceDetails = createAsyncThunk('exploreInfinite/fetchPlaceDetails', async ({ count }, { getState }) => {
     const state = getState();
-    const response = await getPlaceDetails(state.explore.placeIds[state.explore.placeCount]);
+    const response = await getPlaceDetails(state.explore.buffer[bufferSize - 1].place_id);
     return response.data;
 })
 
@@ -26,21 +29,35 @@ export const exploreReducer = createSlice({
         radius: 500,
         type: ['restaurant'],
         keywords: [],
-        minPrice: 1,
+        minPrice: 0,
         maxPrice: 4,
         filterModalVisible: false,
-        units: true, //true is miles false is km
         placeIds: [],
-        placeDetails: [],
+        placeDetails: null,
         nextPageToken: null,
         pageSize: 0,
         placeIdStatus: 'idle',
         placeIdError: null,
         placeDetailsStatus: 'idle',
         placeDetailsError: null,
-        placeCount: 0
+        needMoreData: false,
+        buffer: [],
+        nearbySearchEndReached: false
     },
     reducers: {
+        submitFilter: (state) => {
+            state.placeIds = [];
+            state.placeDetails = null;
+            state.nextPageToken = null;
+            state.pageSize = 0;
+            state.placeIdStatus = 'idle';
+            state.placeIdError = null;
+            state.placeDetailsStatus = 'idle';
+            state.placeDetailsError = null;
+            state.needMoreData = false;
+            state.buffer = [];
+            state.nearbySearchEndReached = false;
+        },
         changeRadius: (state, action) => {
             state.radius = action.payload;
         },
@@ -77,8 +94,18 @@ export const exploreReducer = createSlice({
         closeFilterModal: (state) => {
             state.filterModalVisible = false;
         },
-        toggleUnits: (state) => {
-            state.units = !state.units;
+        concatBuffer: (state) => {
+            state.buffer = state.placeIds.slice(state.placeIds.length - bufferSize, state.placeIds.length).concat(state.buffer);
+            state.placeIds.splice(state.placeIds.length - bufferSize, bufferSize);
+        },
+        swipe: (state) => {
+            state.buffer.pop();
+            if (state.placeIds.length > 0) {
+                state.buffer.unshift(state.placeIds.pop());
+                if (state.placeIds.length <= fetchOffset) {
+                    state.needMoreData = true;
+                }
+            }
         }
     },
     extraReducers(builder) {
@@ -87,29 +114,38 @@ export const exploreReducer = createSlice({
                 state.placeIdStatus = 'loading';
             })
             .addCase(fetchPlaceIds.fulfilled, (state, action) => {
-                state.placeIdStatus = 'succeeded';
-                state.pageSize = action.payload.results.length
-                state.placeIds = state.placeIds.concat(action.payload.results.map(result => result.place_id));
                 state.nextPageToken = action.payload.next_page_token ? action.payload.next_page_token : null;
+                if (state.pageSize > 0 && !state.nextPageToken) {
+                    state.nearbySearchEndReached = true;
+                }
+                state.pageSize += action.payload.results.length;
+                state.placeIds = action.payload.results.map(result => {
+                    return {
+                        "place_id": result.place_id,
+                        "name": result.name,
+                        "rating": result.rating,
+                        "user_ratings_total": result.user_ratings_total,
+                        "price_level": result.price_level,
+                        "photos": result.photos
+                    }
+                }).reverse().concat(state.placeIds);
+                state.needMoreData = false;
+                state.placeIdStatus = 'succeeded';
             })
             .addCase(fetchPlaceIds.rejected, (state, action) => {
-                state.placeIdStatus = 'failed';
                 state.placeIdError = action.error.message;
+                state.placeIdStatus = 'failed';
             })
             .addCase(fetchPlaceDetails.pending, (state, action) => {
                 state.placeDetailsStatus = 'loading';
             })
             .addCase(fetchPlaceDetails.fulfilled, (state, action) => {
+                state.placeDetails = action.payload.result;
                 state.placeDetailsStatus = 'succeeded';
-                state.placeDetails.push(action.payload.result);
-                state.placeCount++;
-                // if (state.placeDetails.length > 10) {
-                //     state.placeDetails.shift();
-                // }
             })
             .addCase(fetchPlaceDetails.rejected, (state, action) => {
-                state.placeDetailsStatus = 'failed';
                 state.placeDetailsError = action.error.message;
+                state.placeDetailsStatus = 'failed';
             })
     }
 })
@@ -123,7 +159,9 @@ export const { changeRadius,
     removeKeyword,
     openFilterModal,
     closeFilterModal,
-    toggleUnits
+    submitFilter,
+    concatBuffer,
+    swipe
 } = exploreReducer.actions
 
 export const selectRadius = state => state.explore.radius
@@ -133,13 +171,13 @@ export const selectMinPrice = state => state.explore.minPrice
 export const selectMaxPrice = state => state.explore.maxPrice
 export const selectFilterModalVisible = state => state.explore.filterModalVisible
 export const selectUnits = state => state.explore.units
-// export const selectPlaceIds = state => state.explore.placeIds
 export const selectPlaceIdStatus = state => state.explore.placeIdStatus
 export const selectPlaceIdError = state => state.explore.placeIdError
 export const selectPlaceDetails = state => state.explore.placeDetails
 export const selectPlaceDetailsStatus = state => state.explore.placeDetailsStatus
 export const selectPlaceDetailsError = state => state.explore.placeDetailsError
-export const selectPageSize = state => state.explore.pageSize
-export const selectPlaceCount = state => state.explore.placeCount
+export const selectExploreBuffer = state => state.explore.buffer
+export const selectNeedMoreData = state => state.explore.needMoreData
+export const selectNearbySearchEndReached = state => state.explore.nearbySearchEndReached
 
 export default exploreReducer.reducer
