@@ -4,7 +4,7 @@ import { Dimensions } from 'react-native';
 
 export default function CardSkeleton() {
     return (
-        <Box position="absolute">
+        <Box h={Dimensions.get('window').height * 0.8} rounded="2xl" overflow="hidden">
             <Center w="100%">
                 <VStack w="100%" maxW="400" borderWidth="1" space={8} overflow="hidden" rounded="2xl" _dark={{
                     borderColor: "coolGray.500"

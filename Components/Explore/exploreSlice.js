@@ -19,7 +19,7 @@ export const fetchPlaceIds = createAsyncThunk('exploreInfinite/fetchPlaceIds', a
 
 export const fetchPlaceDetails = createAsyncThunk('exploreInfinite/fetchPlaceDetails', async ({ count }, { getState }) => {
     const state = getState();
-    const response = await getPlaceDetails(state.explore.placeIds[state.explore.bufferPointer]);
+    const response = await getPlaceDetails(state.explore.buffer[bufferSize - 1].place_id);
     return response.data;
 })
 
@@ -29,10 +29,9 @@ export const exploreReducer = createSlice({
         radius: 500,
         type: ['restaurant'],
         keywords: [],
-        minPrice: 1,
+        minPrice: 0,
         maxPrice: 4,
         filterModalVisible: false,
-        units: true, //true is miles false is km
         placeIds: [],
         placeDetails: null,
         nextPageToken: null,
@@ -41,12 +40,24 @@ export const exploreReducer = createSlice({
         placeIdError: null,
         placeDetailsStatus: 'idle',
         placeDetailsError: null,
-        bufferPointer: 0,
         needMoreData: false,
         buffer: [],
         nearbySearchEndReached: false
     },
     reducers: {
+        submitFilter: (state) => {
+            state.placeIds = [];
+            state.placeDetails = null;
+            state.nextPageToken = null;
+            state.pageSize = 0;
+            state.placeIdStatus = 'idle';
+            state.placeIdError = null;
+            state.placeDetailsStatus = 'idle';
+            state.placeDetailsError = null;
+            state.needMoreData = false;
+            state.buffer = [];
+            state.nearbySearchEndReached = false;
+        },
         changeRadius: (state, action) => {
             state.radius = action.payload;
         },
@@ -82,9 +93,6 @@ export const exploreReducer = createSlice({
         ,
         closeFilterModal: (state) => {
             state.filterModalVisible = false;
-        },
-        toggleUnits: (state) => {
-            state.units = !state.units;
         },
         concatBuffer: (state) => {
             state.buffer = state.placeIds.slice(state.placeIds.length - bufferSize, state.placeIds.length).concat(state.buffer);
@@ -151,7 +159,7 @@ export const { changeRadius,
     removeKeyword,
     openFilterModal,
     closeFilterModal,
-    toggleUnits,
+    submitFilter,
     concatBuffer,
     swipe
 } = exploreReducer.actions

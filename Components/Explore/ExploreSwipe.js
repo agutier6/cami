@@ -39,9 +39,6 @@ const ExploreSwipe = ({ location }) => {
             buffer.map((item) => {
                 if (item) {
                     return <ExploreCard place={item} lat={lat} long={long} key={item.place_id} />
-                } else {
-                    setErrorIds(errorIds + 1);
-                    return <CardSkeleton key={errorIds} />;
                 }
             })
         );
