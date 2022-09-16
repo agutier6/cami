@@ -3,7 +3,7 @@ import Constants from 'expo-constants';
 import React from 'react';
 import { Dimensions } from 'react-native';
 import { AirbnbRating } from 'react-native-ratings';
-import { selectPageSize, selectPlaceDetailsError, selectPlaceDetailsStatus, swipe } from './exploreSlice';
+import { selectPlaceDetailsError, selectPlaceDetailsStatus, swipe } from './exploreSlice';
 import { useSelector, useDispatch } from 'react-redux';
 import TinderCard from 'react-tinder-card';
 import CardSkeleton from './CardSkeleton';

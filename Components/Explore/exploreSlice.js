@@ -2,6 +2,9 @@ import { createSlice, createAsyncThunk } from '@reduxjs/toolkit'
 import { getPlaceDetails } from '../../services/googlePlaces/getPlaceDetails';
 import { nearbySearchByProminence, nearbySearchWithNextPageToken } from '../../services/googlePlaces/nearbySearch';
 
+const bufferSize = 4;
+const fetchOffset = 3;
+
 export const fetchPlaceIds = createAsyncThunk('exploreInfinite/fetchPlaceIds', async ({ lat, long }, { getState }) => {
     const state = getState();
 
@@ -84,14 +87,14 @@ export const exploreReducer = createSlice({
             state.units = !state.units;
         },
         concatBuffer: (state) => {
-            state.buffer = state.placeIds.slice(0, 4).reverse().concat(state.buffer);
-            state.bufferPointer = 4;
+            state.buffer = state.placeIds.slice(state.placeIds.length - bufferSize, state.placeIds.length).concat(state.buffer);
+            state.placeIds.splice(state.placeIds.length - bufferSize, bufferSize);
         },
         swipe: (state) => {
-            if (state.bufferPointer < state.pageSize) {
-                state.buffer.unshift(state.placeIds[state.bufferPointer]);
-                state.bufferPointer++;
-                if (state.bufferPointer > state.pageSize - 2) {
+            state.buffer.pop();
+            if (state.placeIds.length > 0) {
+                state.buffer.unshift(state.placeIds.pop());
+                if (state.placeIds.length <= fetchOffset) {
                     state.needMoreData = true;
                 }
             }
@@ -108,7 +111,7 @@ export const exploreReducer = createSlice({
                     state.nearbySearchEndReached = true;
                 }
                 state.pageSize += action.payload.results.length;
-                state.placeIds = state.placeIds.concat(action.payload.results.map(result => {
+                state.placeIds = action.payload.results.map(result => {
                     return {
                         "place_id": result.place_id,
                         "name": result.name,
@@ -117,7 +120,7 @@ export const exploreReducer = createSlice({
                         "price_level": result.price_level,
                         "photos": result.photos
                     }
-                }))
+                }).reverse().concat(state.placeIds);
                 state.needMoreData = false;
                 state.placeIdStatus = 'succeeded';
             })
@@ -160,13 +163,11 @@ export const selectMinPrice = state => state.explore.minPrice
 export const selectMaxPrice = state => state.explore.maxPrice
 export const selectFilterModalVisible = state => state.explore.filterModalVisible
 export const selectUnits = state => state.explore.units
-export const selectPlaceIds = state => state.explore.placeIds
 export const selectPlaceIdStatus = state => state.explore.placeIdStatus
 export const selectPlaceIdError = state => state.explore.placeIdError
 export const selectPlaceDetails = state => state.explore.placeDetails
 export const selectPlaceDetailsStatus = state => state.explore.placeDetailsStatus
 export const selectPlaceDetailsError = state => state.explore.placeDetailsError
-export const selectPageSize = state => state.explore.pageSize
 export const selectExploreBuffer = state => state.explore.buffer
 export const selectNeedMoreData = state => state.explore.needMoreData
 export const selectNearbySearchEndReached = state => state.explore.nearbySearchEndReached
