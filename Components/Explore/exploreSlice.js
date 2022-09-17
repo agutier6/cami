@@ -17,7 +17,7 @@ export const fetchPlaceIds = createAsyncThunk('exploreInfinite/fetchPlaceIds', a
     return response.data;
 })
 
-export const fetchPlaceDetails = createAsyncThunk('exploreInfinite/fetchPlaceDetails', async ({ count }, { getState }) => {
+export const fetchPlaceDetails = createAsyncThunk('exploreInfinite/fetchPlaceDetails', async (arg, { getState }) => {
     const state = getState();
     const response = await getPlaceDetails(state.explore.buffer[bufferSize - 1].place_id);
     return response.data;

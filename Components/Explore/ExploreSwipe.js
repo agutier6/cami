@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import { ExploreCard } from './ExploreCard';
 import { useSelector, useDispatch } from 'react-redux';
-import { fetchPlaceIds, selectPlaceIdStatus, selectPlaceIdError, selectNeedMoreData, selectExploreBuffer, concatBuffer, selectNearbySearchEndReached } from './exploreSlice';
+import { fetchPlaceIds, selectPlaceIdStatus, selectPlaceIdError, selectNeedMoreData, selectExploreBuffer, concatBuffer, selectNearbySearchEndReached, fetchPlaceDetails } from './exploreSlice';
 import CardSkeleton from './CardSkeleton';
 
 const ExploreSwipe = ({ location }) => {
@@ -10,7 +10,6 @@ const ExploreSwipe = ({ location }) => {
     const dispatch = useDispatch();
     const lat = location.latitude;
     const long = location.longitude;
-    const [errorIds, setErrorIds] = useState(-1);
     const needMoreData = useSelector(selectNeedMoreData);
     const buffer = useSelector(selectExploreBuffer);
     const nearbySearchEndReached = useSelector(selectNearbySearchEndReached);
@@ -21,6 +20,7 @@ const ExploreSwipe = ({ location }) => {
         }
         if (placeIdStatus === 'succeeded' && buffer.length === 0) {
             dispatch(concatBuffer());
+            dispatch(fetchPlaceDetails());
         }
     }, [placeIdStatus, dispatch,]);
 
