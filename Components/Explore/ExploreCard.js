@@ -44,7 +44,7 @@ export const ExploreCard = ({ place, lat, long }) => {
                         uri: `https://maps.googleapis.com/maps/api/place/photo?photo_reference=${place.photos[0].photo_reference}&key=${Constants.manifest?.extra?.placesApiKey}&maxwidth=1600`
                     }} alt="image" />
                 </AspectRatio>
-                <Center mb="3" position="absolute" bottom="0" px="3" py="1.5">
+                <Center mb="5" position="absolute" bottom="0" px="3" py="1.5">
                     <Stack>
                         <Heading size="2xl" color="white">{place.name}</Heading>
                         <HStack px="2" alignItems="flex-start" space={1} justifyContent="flex-start">
