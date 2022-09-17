@@ -8,6 +8,7 @@ import { useDispatch } from 'react-redux';
 import { openFilterModal } from './exploreSlice';
 import { ExploreFilterModal } from './ExploreFilterModal';
 import CardSkeleton from './CardSkeleton';
+import PlaceDetailsModal from './PlaceDetailsModal';
 
 function ExploreMain() {
     const [location, setLocation] = useState(null);
@@ -47,6 +48,7 @@ function ExploreMain() {
         return (<>
             <ExploreFilterModal />
             <ExploreSwipe location={location.coords} />
+            <PlaceDetailsModal />
         </>);
     } else {
         return (
