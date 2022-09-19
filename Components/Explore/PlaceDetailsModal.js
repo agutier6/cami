@@ -75,7 +75,7 @@ export default function PlaceDetailsModal() {
                         </ReadMore>}
                     {!readMore &&
                         <Box>
-                            <Text color="dimgrey" lineHeight={18} numberOfLines={4}>{item.text}</Text>
+                            <Text color="dimgrey" lineHeight={18} numberOfLines={3}>{item.text}</Text>
                         </Box>}
                 </VStack>
             </HStack >

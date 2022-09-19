@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import { ExploreCard } from './ExploreCard';
 import { useSelector, useDispatch } from 'react-redux';
-import { fetchPlaceIds, selectPlaceIdStatus, selectPlaceIdError, selectNeedMoreData, selectExploreBuffer, concatBuffer, selectNearbySearchEndReached, fetchPlaceDetails } from './exploreSlice';
+import { fetchPlaceIds, selectPlaceIdStatus, selectPlaceIdError, selectNeedMoreData, selectExploreBuffer, concatBuffer, selectNearbySearchEndReached, fetchPlaceDetails, selectExploreLocationStatus } from './exploreSlice';
 import CardSkeleton from './CardSkeleton';
 
 const ExploreSwipe = ({ location }) => {
@@ -13,20 +13,23 @@ const ExploreSwipe = ({ location }) => {
     const needMoreData = useSelector(selectNeedMoreData);
     const buffer = useSelector(selectExploreBuffer);
     const nearbySearchEndReached = useSelector(selectNearbySearchEndReached);
+    const locationStatus = useSelector(selectExploreLocationStatus);
 
     useEffect(() => {
-        if (placeIdStatus === 'idle') {
-            dispatch(fetchPlaceIds({ lat, long }));
+        if (locationStatus === 'succeeded') {
+            if (placeIdStatus === 'idle') {
+                dispatch(fetchPlaceIds());
+            }
+            if (placeIdStatus === 'succeeded' && buffer.length === 0) {
+                dispatch(concatBuffer());
+                dispatch(fetchPlaceDetails());
+            }
         }
-        if (placeIdStatus === 'succeeded' && buffer.length === 0) {
-            dispatch(concatBuffer());
-            dispatch(fetchPlaceDetails());
-        }
-    }, [placeIdStatus, dispatch,]);
+    }, [placeIdStatus, locationStatus, dispatch,]);
 
     useEffect(() => {
         if (needMoreData && placeIdStatus != 'loading' && !nearbySearchEndReached) {
-            dispatch(fetchPlaceIds({ lat, long }));
+            dispatch(fetchPlaceIds());
         }
     }, [needMoreData]);
 

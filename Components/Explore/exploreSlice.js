@@ -5,19 +5,19 @@ import { nearbySearchByProminence, nearbySearchWithNextPageToken } from '../../s
 const bufferSize = 4;
 const fetchOffset = 3;
 
-export const fetchPlaceIds = createAsyncThunk('exploreInfinite/fetchPlaceIds', async ({ lat, long }, { getState }) => {
+export const fetchPlaceIds = createAsyncThunk('explore/fetchPlaceIds', async (args, { getState }) => {
     const state = getState();
 
     if (state.explore.nextPageToken) {
-        const response = await nearbySearchWithNextPageToken(lat, long, state.explore.radius, 'restaurant', '', state.explore.minPrice, state.explore.maxPrice, 'english', state.explore.nextPageToken);
+        const response = await nearbySearchWithNextPageToken(state.explore.location.latitude, state.explore.location.longitude, state.explore.radius, 'restaurant', '', state.explore.minPrice, state.explore.maxPrice, 'english', state.explore.nextPageToken);
         return response.data;
     }
 
-    const response = await nearbySearchByProminence(lat, long, state.explore.radius, 'restaurant', '', state.explore.minPrice, state.explore.maxPrice, 'english');
+    const response = await nearbySearchByProminence(state.explore.location.latitude, state.explore.location.longitude, state.explore.radius, 'restaurant', '', state.explore.minPrice, state.explore.maxPrice, 'english');
     return response.data;
 })
 
-export const fetchPlaceDetails = createAsyncThunk('exploreInfinite/fetchPlaceDetails', async (arg, { getState }) => {
+export const fetchPlaceDetails = createAsyncThunk('explore/fetchPlaceDetails', async (args, { getState }) => {
     const state = getState();
     const response = await getPlaceDetails(state.explore.buffer[bufferSize - 1].place_id);
     return response.data;
@@ -26,12 +26,27 @@ export const fetchPlaceDetails = createAsyncThunk('exploreInfinite/fetchPlaceDet
 export const exploreReducer = createSlice({
     name: 'explore',
     initialState: {
+        location: {
+            latitude: null,
+            longitude: null
+        },
+        locationStatus: 'idle',
         radius: 500,
         type: ['restaurant'],
         keywords: [],
         minPrice: 0,
         maxPrice: 4,
         filterModalVisible: false,
+        region: {
+            latitude: null,
+            longitude: null,
+            latitudeDelta: 0.01,
+            longitudeDelta: 0.01
+        },
+        mapMarker: {
+            latitude: null,
+            longitude: null
+        },
         placeIds: [],
         placeDetails: null,
         nextPageToken: null,
@@ -57,6 +72,10 @@ export const exploreReducer = createSlice({
             state.needMoreData = false;
             state.buffer = [];
             state.nearbySearchEndReached = false;
+        },
+        setExploreLocation: (state, action) => {
+            state.location = action.payload;
+            state.locationStatus = 'succeeded';
         },
         changeRadius: (state, action) => {
             state.radius = action.payload;
@@ -93,6 +112,12 @@ export const exploreReducer = createSlice({
         ,
         closeFilterModal: (state) => {
             state.filterModalVisible = false;
+        },
+        setRegion: (state, action) => {
+            state.region = action.payload;
+        },
+        setMapMarker: (state, action) => {
+            state.mapMarker = action.payload
         },
         concatBuffer: (state) => {
             state.buffer = state.placeIds.slice(state.placeIds.length - bufferSize, state.placeIds.length).concat(state.buffer);
@@ -161,7 +186,10 @@ export const { changeRadius,
     closeFilterModal,
     submitFilter,
     concatBuffer,
-    swipe
+    swipe,
+    setExploreLocation,
+    setMapMarker,
+    setRegion
 } = exploreReducer.actions
 
 export const selectRadius = state => state.explore.radius
@@ -179,5 +207,9 @@ export const selectPlaceDetailsError = state => state.explore.placeDetailsError
 export const selectExploreBuffer = state => state.explore.buffer
 export const selectNeedMoreData = state => state.explore.needMoreData
 export const selectNearbySearchEndReached = state => state.explore.nearbySearchEndReached
+export const selectExploreLocation = state => state.explore.location
+export const selectExploreLocationStatus = state => state.explore.locationStatus
+export const selectExploreRegion = state => state.explore.region
+export const selectExploreMapMarker = state => state.explore.mapMarker
 
 export default exploreReducer.reducer

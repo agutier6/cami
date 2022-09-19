@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { useSelector, useDispatch } from 'react-redux'
-import { Center, Modal, FormControl, Button, Slider, Text, HStack } from 'native-base';
+import { Center, Modal, FormControl, Button, Slider, Text, HStack, Icon } from 'native-base';
 import {
     changeRadius,
     // changeMinPrice,
@@ -16,11 +16,22 @@ import {
     selectMaxPrice,
     closeFilterModal,
     selectFilterModalVisible,
-    submitFilter
+    submitFilter,
+    setExploreLocation,
+    selectExploreRegion,
+    selectExploreMapMarker,
+    setRegion,
+    setMapMarker
 } from './exploreSlice';
-import { Dimensions } from 'react-native';
+import { useWindowDimensions } from 'react-native';
+import { selectExploreLocation } from './exploreSlice';
+import { useNavigation, useIsFocused } from '@react-navigation/native';
+import { Feather } from '@expo/vector-icons';
+
 
 export const ExploreFilterModal = () => {
+    const navigation = useNavigation();
+    const isFocused = useIsFocused();
     const radius = useSelector(selectRadius);
     // const type = useSelector(selectType);
     // const keywords = useSelector(selectKeywords);
@@ -30,34 +41,51 @@ export const ExploreFilterModal = () => {
     // units doesnt need global state change later
     // const units = useSelector(selectUnits);
     const [units, setUnits] = useState(true);
-    const showModal = useSelector(selectFilterModalVisible);
+    const showFilterModal = useSelector(selectFilterModalVisible);
     const dispatch = useDispatch();
-    const screenWidth = Dimensions.get('window').width;
+    const layout = useWindowDimensions();
     const radiusMax = 5000 //meters
     const radiusStep = 250 //meters
     const [radiusTemp, setRadiusTemp] = useState(radius);
     const [maxPriceTemp, setMaxPriceTemp] = useState(maxPrice);
-
+    const location = useSelector(selectExploreLocation);
+    const region = useSelector(selectExploreRegion);
+    const mapMarker = useSelector(selectExploreMapMarker);
 
     return (
         <Center>
-            <Modal isOpen={showModal} onClose={() => {
+            <Modal isOpen={showFilterModal && isFocused} onClose={() => {
                 dispatch(closeFilterModal());
                 setRadiusTemp(radius);
                 setMaxPriceTemp(maxPrice);
+                dispatch(setRegion({
+                    ...location,
+                    latitudeDelta: 0.01,
+                    longitudeDelta: 0.01,
+                }));
+                dispatch(setMapMarker({
+                    ...location
+                }));
             }}>
-                <Modal.Content maxWidth={0.9 * screenWidth}>
+                <Modal.Content maxWidth={0.9 * layout.width}>
                     <Modal.CloseButton />
                     <Modal.Header>Filter Options</Modal.Header>
-                    <Modal.Body>
-                        <FormControl>
+                    <Modal.Body keyboardShouldPersistTaps={'handled'} horizontal={false}>
+                        <Button onPress={() => {
+                            // dispatch(closeFilterModal());
+                            navigation.navigate("Change Location");
+                        }} variant="solid" borderRadius="full"
+                            leftIcon={<Icon as={Feather} name="map-pin" size="sm" color="white" />}>
+                            Change Location
+                        </Button>
+                        <FormControl mt="3">
                             <HStack alignItems="flex-start" space={1}>
                                 <FormControl.Label>Radius</FormControl.Label>
-                                <Button size="xs" width="14%" onPress={() => setUnits(!units)}>{(units ? "km" : "mi")}</Button>
+                                <Button variant="solid" borderRadius="full" size="xs" width="14%" onPress={() => setUnits(!units)}>{(units ? "km" : "mi")}</Button>
                             </HStack>
                             <HStack alignItems="flex-start" space={1}>
                                 <Text>{String(Math.round(radiusTemp * 10 / (units ? 1609 : 1000)) / 10)} {(units ? "mi" : "km")}</Text>
-                                <Slider w="4/5" maxW={0.8 * screenWidth} defaultValue={radiusTemp}
+                                <Slider w="4/5" maxW={0.8 * layout.width} defaultValue={radiusTemp}
                                     minValue={0} maxValue={radiusMax} accessibilityLabel="Search Radius" step={radiusStep}
                                     onChangeEnd={(value) => setRadiusTemp(value)} position="absolute" right={0}>
                                     <Slider.Track>
@@ -75,7 +103,7 @@ export const ExploreFilterModal = () => {
                             <FormControl.Label>Price Range</FormControl.Label>
                             <HStack alignItems="flex-start" space={1}>
                                 <Text> {'$'.repeat(maxPriceTemp)}</Text>
-                                <Slider w="4/5" maxW={0.8 * screenWidth} defaultValue={maxPriceTemp}
+                                <Slider w="4/5" maxW={0.8 * layout.width} defaultValue={maxPriceTemp}
                                     minValue={1} maxValue={4} accessibilityLabel="Price Level" step={1}
                                     onChangeEnd={(value) => setMaxPriceTemp(value)} position="absolute" right={0}>
                                     <Slider.Track>
@@ -88,17 +116,29 @@ export const ExploreFilterModal = () => {
                     </Modal.Body>
                     <Modal.Footer>
                         <Button.Group space={2}>
-                            <Button variant="ghost" colorScheme="blueGray" onPress={() => {
-                                dispatch(closeFilterModal())
+                            <Button variant="ghost" borderRadius="full" onPress={() => {
+                                dispatch(closeFilterModal());
+                                setRadiusTemp(radius);
+                                setMaxPriceTemp(maxPrice);
+                                dispatch(setRegion({
+                                    ...location,
+                                    latitudeDelta: 0.01,
+                                    longitudeDelta: 0.01,
+                                }));
+                                dispatch(setMapMarker({
+                                    ...location
+                                }));
                             }}>
                                 Cancel
                             </Button>
-                            <Button onPress={() => {
-                                dispatch(closeFilterModal());
-                                dispatch(changeRadius(radiusTemp));
-                                dispatch(changeMaxPrice(maxPriceTemp));
-                                dispatch(submitFilter());
-                            }}>
+                            <Button variant="solid" borderRadius="full"
+                                onPress={() => {
+                                    dispatch(closeFilterModal());
+                                    dispatch(changeRadius(radiusTemp));
+                                    dispatch(changeMaxPrice(maxPriceTemp));
+                                    dispatch(setExploreLocation(mapMarker));
+                                    dispatch(submitFilter());
+                                }}>
                                 Save
                             </Button>
                         </Button.Group>
