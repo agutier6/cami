@@ -8,16 +8,17 @@ import { useSelector, useDispatch } from 'react-redux';
 import TinderCard from 'react-tinder-card';
 import CardSkeleton from './CardSkeleton';
 
-export const ExploreCard = ({ place, lat, long }) => {
+export const ExploreCard = React.forwardRef((props, ref) => {
     const placeDetailsError = useSelector(selectPlaceDetailsError);
     const placeDetailsStatus = useSelector(selectPlaceDetailsStatus);
     const dispatch = useDispatch();
+
 
     if (placeDetailsStatus === 'failed') {
         console.log('Card error: ' + placeDetailsError);
     }
 
-    if (!place) {
+    if (!props.place) {
         return (
             <TinderCard>
                 <CardSkeleton />
@@ -29,7 +30,9 @@ export const ExploreCard = ({ place, lat, long }) => {
         <TinderCard onCardLeftScreen={() => {
             dispatch(swipe());
             dispatch(fetchPlaceDetails());
-        }}>
+        }} preventSwipe={['up', 'down']}
+            ref={ref}
+        >
             <Box position="absolute" h={Dimensions.get('window').height * 0.695} rounded="2xl" overflow="hidden" _dark={{
                 borderColor: "coolGray.600",
                 backgroundColor: "gray.700"
@@ -41,23 +44,23 @@ export const ExploreCard = ({ place, lat, long }) => {
             }}>
                 <AspectRatio w="100%" ratio={Dimensions.get('window').width / (Dimensions.get('window').height * 0.695)}>
                     <Image source={{
-                        uri: `https://maps.googleapis.com/maps/api/place/photo?photo_reference=${place.photos[0].photo_reference}&key=${Constants.manifest?.extra?.placesApiKey}&maxwidth=1600`
+                        uri: `https://maps.googleapis.com/maps/api/place/photo?photo_reference=${props.place.photos[0].photo_reference}&key=${Constants.manifest?.extra?.placesApiKey}&maxwidth=1600`
                     }} alt="image" />
                 </AspectRatio>
                 <Center mb="5" position="absolute" bottom="0" px="3" py="1.5">
                     <Stack>
-                        <Heading size="2xl" color="white">{place.name}</Heading>
+                        <Heading size="2xl" color="white">{props.place.name}</Heading>
                         <HStack px="2" alignItems="flex-start" space={1} justifyContent="flex-start">
                             <Text fontSize="lg" _light={{
                                 color: "warmGray.100"
                             }} _dark={{
                                 color: "warmGray.100"
                             }} fontWeight="500" mt="-1">
-                                {place.rating}
+                                {props.place.rating}
                             </Text>
                             <AirbnbRating
-                                defaultRating={place.rating}
-                                count={place.rating}
+                                defaultRating={props.place.rating}
+                                count={props.place.rating}
                                 selectedColor="white"
                                 size={15}
                                 showRating={false}
@@ -70,14 +73,14 @@ export const ExploreCard = ({ place, lat, long }) => {
                             }} _dark={{
                                 color: "warmGray.100"
                             }} fontWeight="500" ml="3" mt="-1">
-                                {place.user_ratings_total} reviews
+                                {props.place.user_ratings_total} reviews
                             </Text>
                             <Text fontSize="lg" _light={{
                                 color: "warmGray.100"
                             }} _dark={{
                                 color: "warmGray.100"
                             }} fontWeight="500" ml="3" mt="-1">
-                                {'$'.repeat(place.price_level)}
+                                {'$'.repeat(props.place.price_level)}
                             </Text>
                         </HStack>
                     </Stack>
@@ -85,4 +88,4 @@ export const ExploreCard = ({ place, lat, long }) => {
             </Box>
         </TinderCard>
     );
-};
+});

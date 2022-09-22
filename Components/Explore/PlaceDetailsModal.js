@@ -167,7 +167,7 @@ export default function PlaceDetailsModal() {
                 </Box >
                 {placeDetailsStatus === 'succeeded' && placeDetails &&
                     <Box py={5} backgroundColor="white" borderTopRadius={16}>
-                        {!modalOpen &&
+                        {!modalOpen && placeDetails.reviews.length > 0 &&
                             <Box>
                                 {renderItem(placeDetails.reviews[0], false)}
                             </Box>

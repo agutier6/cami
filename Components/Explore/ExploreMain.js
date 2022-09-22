@@ -54,8 +54,8 @@ function ExploreMain() {
     if (locationStatus === 'succeeded') {
         return (<>
             <ExploreFilterModal />
-            <ExploreSwipe location={location.coords} />
             <PlaceDetailsModal />
+            <ExploreSwipe />
         </>);
     } else if (locationStatus === 'failed') {
         <Box>

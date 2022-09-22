@@ -1,9 +1,13 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit'
 import { getPlaceDetails } from '../../services/googlePlaces/getPlaceDetails';
 import { nearbySearchByProminence, nearbySearchWithNextPageToken } from '../../services/googlePlaces/nearbySearch';
+import React from 'react';
 
-const bufferSize = 4;
+export const bufferSize = 4;
+export const undoAmount = 3;
 const fetchOffset = 3;
+
+// bufferSize must be greater than or equal to undoAmount
 
 export const fetchPlaceIds = createAsyncThunk('explore/fetchPlaceIds', async (args, { getState }) => {
     const state = getState();
@@ -19,7 +23,10 @@ export const fetchPlaceIds = createAsyncThunk('explore/fetchPlaceIds', async (ar
 
 export const fetchPlaceDetails = createAsyncThunk('explore/fetchPlaceDetails', async (args, { getState }) => {
     const state = getState();
-    const response = await getPlaceDetails(state.explore.buffer[bufferSize - 1].place_id);
+    if (state.explore.placeIds.length === 0 && state.explore.buffer.length - undoAmount - 1 < 0) {
+        return -1;
+    }
+    const response = await getPlaceDetails(state.explore.buffer[state.explore.placeIds.length > 0 ? bufferSize - 1 : state.explore.buffer.length - undoAmount - 1].place_id);
     return response.data;
 })
 
@@ -32,7 +39,7 @@ export const exploreReducer = createSlice({
         },
         locationStatus: 'idle',
         radius: 500,
-        type: ['restaurant'],
+        types: ["restaurant", "bar", "cafe", "night_club"],
         keywords: [],
         minPrice: 0,
         maxPrice: 4,
@@ -50,7 +57,6 @@ export const exploreReducer = createSlice({
         placeIds: [],
         placeDetails: null,
         nextPageToken: null,
-        pageSize: 0,
         placeIdStatus: 'idle',
         placeIdError: null,
         placeDetailsStatus: 'idle',
@@ -64,7 +70,6 @@ export const exploreReducer = createSlice({
             state.placeIds = [];
             state.placeDetails = null;
             state.nextPageToken = null;
-            state.pageSize = 0;
             state.placeIdStatus = 'idle';
             state.placeIdError = null;
             state.placeDetailsStatus = 'idle';
@@ -86,15 +91,9 @@ export const exploreReducer = createSlice({
         changeMaxPrice: (state, action) => {
             state.maxPrice = action.payload;
         },
-        addType: (state, action) => {
-            if (!state.type.find(action.payload)) {
-                state.type.push(action.payload);
-            }
-        },
-        removeType: (state, action) => {
-            state.type = state.type.filter(function (value) {
-                return value != action.payload;
-            });
+        setTypes: (state, action) => {
+            state.types = action.payload
+            console.log(state.types);
         },
         addKeyword: (state, action) => {
             if (!state.keywords.find(action.payload)) {
@@ -124,13 +123,21 @@ export const exploreReducer = createSlice({
             state.placeIds.splice(state.placeIds.length - bufferSize, bufferSize);
         },
         swipe: (state) => {
-            state.buffer.pop();
+            if (state.buffer.length >= bufferSize + undoAmount || state.placeIds.length === 0) {
+                state.buffer.pop();
+            }
             if (state.placeIds.length > 0) {
                 state.buffer.unshift(state.placeIds.pop());
                 if (state.placeIds.length <= fetchOffset) {
                     state.needMoreData = true;
                 }
             }
+            console.log(state.buffer.map(i => i ? i.name : 'empty'));
+        },
+        undo: (state) => {
+            state.placeIds.push(state.buffer.shift());
+            state.buffer.push(null);
+            console.log(state.buffer.map(i => i ? i.name : 'empty'));
         }
     },
     extraReducers(builder) {
@@ -140,10 +147,9 @@ export const exploreReducer = createSlice({
             })
             .addCase(fetchPlaceIds.fulfilled, (state, action) => {
                 state.nextPageToken = action.payload.next_page_token ? action.payload.next_page_token : null;
-                if (state.pageSize > 0 && !state.nextPageToken) {
+                if (!state.nextPageToken) {
                     state.nearbySearchEndReached = true;
                 }
-                state.pageSize += action.payload.results.length;
                 state.placeIds = action.payload.results.map(result => {
                     return {
                         "place_id": result.place_id,
@@ -165,7 +171,11 @@ export const exploreReducer = createSlice({
                 state.placeDetailsStatus = 'loading';
             })
             .addCase(fetchPlaceDetails.fulfilled, (state, action) => {
-                state.placeDetails = action.payload.result;
+                if (action.payload === -1) {
+                    state.placeDetails = null;
+                } else {
+                    state.placeDetails = action.payload.result;
+                }
                 state.placeDetailsStatus = 'succeeded';
             })
             .addCase(fetchPlaceDetails.rejected, (state, action) => {
@@ -178,8 +188,7 @@ export const exploreReducer = createSlice({
 export const { changeRadius,
     changeMinPrice,
     changeMaxPrice,
-    addType,
-    removeType,
+    setTypes,
     addKeyword,
     removeKeyword,
     openFilterModal,
@@ -187,20 +196,21 @@ export const { changeRadius,
     submitFilter,
     concatBuffer,
     swipe,
+    undo,
     setExploreLocation,
     setMapMarker,
     setRegion
 } = exploreReducer.actions
 
 export const selectRadius = state => state.explore.radius
-export const selectType = state => state.explore.type
+export const selectTypes = state => state.explore.types
 export const selectKeywords = state => state.explore.keywords
 export const selectMinPrice = state => state.explore.minPrice
 export const selectMaxPrice = state => state.explore.maxPrice
 export const selectFilterModalVisible = state => state.explore.filterModalVisible
-export const selectUnits = state => state.explore.units
 export const selectPlaceIdStatus = state => state.explore.placeIdStatus
 export const selectPlaceIdError = state => state.explore.placeIdError
+export const selectPlaceIdLength = state => state.explore.placeIds.length
 export const selectPlaceDetails = state => state.explore.placeDetails
 export const selectPlaceDetailsStatus = state => state.explore.placeDetailsStatus
 export const selectPlaceDetailsError = state => state.explore.placeDetailsError

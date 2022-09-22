@@ -1,16 +1,14 @@
 import React, { useState } from 'react'
 import { useSelector, useDispatch } from 'react-redux'
-import { Center, Modal, FormControl, Button, Slider, Text, HStack, Icon } from 'native-base';
+import { Center, Modal, FormControl, Button, Slider, Text, HStack, Icon, Checkbox } from 'native-base';
 import {
     changeRadius,
     // changeMinPrice,
     changeMaxPrice,
-    // addType,
-    // removeType,
     // addKeyword,
     // removeKeyword,
     selectRadius,
-    // selectType,
+    selectTypes,
     // selectKeywords,
     // selectMinPrice,
     selectMaxPrice,
@@ -21,25 +19,23 @@ import {
     selectExploreRegion,
     selectExploreMapMarker,
     setRegion,
-    setMapMarker
+    setMapMarker,
+    setTypes
 } from './exploreSlice';
 import { useWindowDimensions } from 'react-native';
 import { selectExploreLocation } from './exploreSlice';
 import { useNavigation, useIsFocused } from '@react-navigation/native';
-import { Feather } from '@expo/vector-icons';
-
+import { Feather, Ionicons } from '@expo/vector-icons';
 
 export const ExploreFilterModal = () => {
     const navigation = useNavigation();
     const isFocused = useIsFocused();
     const radius = useSelector(selectRadius);
-    // const type = useSelector(selectType);
+    const types = useSelector(selectTypes);
     // const keywords = useSelector(selectKeywords);
     // add ability to set min priace later
     // const minPrice = useSelector(selectMinPrice);
     const maxPrice = useSelector(selectMaxPrice);
-    // units doesnt need global state change later
-    // const units = useSelector(selectUnits);
     const [units, setUnits] = useState(true);
     const showFilterModal = useSelector(selectFilterModalVisible);
     const dispatch = useDispatch();
@@ -48,6 +44,11 @@ export const ExploreFilterModal = () => {
     const radiusStep = 250 //meters
     const [radiusTemp, setRadiusTemp] = useState(radius);
     const [maxPriceTemp, setMaxPriceTemp] = useState(maxPrice);
+    // const [typesTemp, setTypesTemp] = useState(types);
+    const [restaurant, setRestaurant] = useState(types.some(type => type === 'restaurant'));
+    const [bar, setBar] = useState(types.some(type => type === 'bar'));
+    const [cafe, setCafe] = useState(types.some(type => type === 'cafe'));
+    const [nightclub, setNightclub] = useState(types.some(type => type === 'night_club'));
     const location = useSelector(selectExploreLocation);
     const region = useSelector(selectExploreRegion);
     const mapMarker = useSelector(selectExploreMapMarker);
@@ -58,6 +59,10 @@ export const ExploreFilterModal = () => {
                 dispatch(closeFilterModal());
                 setRadiusTemp(radius);
                 setMaxPriceTemp(maxPrice);
+                setRestaurant(types.some(type => type === 'restaurant'));
+                setBar(types.some(type => type === 'bar'));
+                setCafe(types.some(type => type === 'cafe'));
+                setNightclub(types.some(type => type === 'night_club'));
                 dispatch(setRegion({
                     ...location,
                     latitudeDelta: 0.01,
@@ -97,7 +102,32 @@ export const ExploreFilterModal = () => {
                         </FormControl>
                         <FormControl mt="3">
                             <FormControl.Label>Categories</FormControl.Label>
-                            <Text>Not yet available</Text>
+                            {/* <Checkbox.Group onChange={values => setTypesTemp(values || [])} value={typesTemp} accessibilityLabel="Choose categories">
+                                <Checkbox value="restaurant">Restaurants</Checkbox>
+                                <Checkbox value="cafe">Cafes</Checkbox>
+                                <Checkbox value="bar">Bars</Checkbox>
+                                <Checkbox value="night_club">Night Clubs</Checkbox>
+                            </Checkbox.Group> */}
+                            <Checkbox value="restaurant" isChecked={restaurant}
+                                icon={<Icon as={Ionicons} name="restaurant" color="white" />}
+                                onChange={() => setRestaurant(!restaurant)}>
+                                Restaurants
+                            </Checkbox>
+                            <Checkbox value="cafe" isChecked={cafe}
+                                icon={<Icon as={Ionicons} name="cafe" color="white" />}
+                                onChange={() => setCafe(!cafe)}>
+                                Cafes
+                            </Checkbox>
+                            <Checkbox value="bar" isChecked={bar}
+                                icon={<Icon as={Ionicons} name="wine-sharp" color="white" />}
+                                onChange={() => setBar(!bar)}>
+                                Bars
+                            </Checkbox>
+                            <Checkbox value="night_club" isChecked={nightclub}
+                                icon={<Icon as={Ionicons} name="disc-sharp" color="white" />}
+                                onChange={() => setNightclub(!nightclub)}>
+                                Night Clubs
+                            </Checkbox>
                         </FormControl>
                         <FormControl mt="3">
                             <FormControl.Label>Price Range</FormControl.Label>
@@ -120,6 +150,10 @@ export const ExploreFilterModal = () => {
                                 dispatch(closeFilterModal());
                                 setRadiusTemp(radius);
                                 setMaxPriceTemp(maxPrice);
+                                setRestaurant(types.some(type => type === 'restaurant'));
+                                setBar(types.some(type => type === 'bar'));
+                                setCafe(types.some(type => type === 'cafe'));
+                                setNightclub(types.some(type => type === 'night_club'));
                                 dispatch(setRegion({
                                     ...location,
                                     latitudeDelta: 0.01,
@@ -137,6 +171,20 @@ export const ExploreFilterModal = () => {
                                     dispatch(changeRadius(radiusTemp));
                                     dispatch(changeMaxPrice(maxPriceTemp));
                                     dispatch(setExploreLocation(mapMarker));
+                                    let typesTemp = []
+                                    if (restaurant) {
+                                        typesTemp = [...typesTemp, "restaurant"];
+                                    }
+                                    if (cafe) {
+                                        typesTemp = [...typesTemp, "cafe"];
+                                    }
+                                    if (bar) {
+                                        typesTemp = [...typesTemp, "bar"];
+                                    }
+                                    if (nightclub) {
+                                        typesTemp = [...typesTemp, "night_club"];
+                                    }
+                                    dispatch(setTypes(typesTemp))
                                     dispatch(submitFilter());
                                 }}>
                                 Save

@@ -1,19 +1,26 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useMemo } from 'react'
 import { ExploreCard } from './ExploreCard';
 import { useSelector, useDispatch } from 'react-redux';
-import { fetchPlaceIds, selectPlaceIdStatus, selectPlaceIdError, selectNeedMoreData, selectExploreBuffer, concatBuffer, selectNearbySearchEndReached, fetchPlaceDetails, selectExploreLocationStatus } from './exploreSlice';
+import { undoAmount, bufferSize, fetchPlaceIds, selectPlaceIdStatus, selectPlaceIdError, selectNeedMoreData, selectExploreBuffer, concatBuffer, selectNearbySearchEndReached, fetchPlaceDetails, selectExploreLocationStatus, undo, selectPlaceIdLength } from './exploreSlice';
 import CardSkeleton from './CardSkeleton';
+import { Ionicons } from '@expo/vector-icons';
+import { Fab, Icon, useToast } from 'native-base';
+import { useHeaderHeight } from '@react-navigation/elements';
+import { useWindowDimensions } from 'react-native';
 
-const ExploreSwipe = ({ location }) => {
+const ExploreSwipe = () => {
     const placeIdStatus = useSelector(selectPlaceIdStatus);
     const placeIdError = useSelector(selectPlaceIdError);
     const dispatch = useDispatch();
-    const lat = location.latitude;
-    const long = location.longitude;
     const needMoreData = useSelector(selectNeedMoreData);
     const buffer = useSelector(selectExploreBuffer);
     const nearbySearchEndReached = useSelector(selectNearbySearchEndReached);
     const locationStatus = useSelector(selectExploreLocationStatus);
+    const placeIdLength = useSelector(selectPlaceIdLength);
+    const layout = useWindowDimensions();
+    const headerHeight = useHeaderHeight();
+    const cardRefs = useMemo(() => Array(undoAmount + bufferSize).fill(0).map(i => React.createRef()), [])
+    const toast = useToast();
 
     useEffect(() => {
         if (locationStatus === 'succeeded') {
@@ -39,11 +46,28 @@ const ExploreSwipe = ({ location }) => {
 
     if (buffer.length > 0) {
         return (
-            buffer.map((item) => {
-                if (item) {
-                    return <ExploreCard place={item} lat={lat} long={long} key={item.place_id} />
-                }
-            })
+            <>
+                {buffer.map((item, i) => {
+                    if (item) {
+                        return <ExploreCard place={item} ref={cardRefs[i]} key={item.place_id} />
+                    }
+                })}
+                <Fab renderInPortal={false}
+                    shadow={2} size="sm" bottom={layout.height * 0.305 - headerHeight - 1}
+                    icon={<Icon color="white" as={Ionicons} name="arrow-undo" size="sm" />}
+                    onPress={() => {
+                        const pointer = placeIdLength > 0 ? bufferSize : buffer.length - undoAmount;
+                        if (pointer > 0 && buffer[pointer]) {
+                            dispatch(undo())
+                            cardRefs[pointer].current.restoreCard();
+                        } else {
+                            toast.show({
+                                description: "Cannot undo, sorry!",
+                                placement: "top"
+                            })
+                        }
+                    }} />
+            </>
         );
     }
 
