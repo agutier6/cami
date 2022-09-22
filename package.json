@@ -41,6 +41,7 @@
     "react-native-keyboard-aware-scroll-view": "^0.9.5",
     "react-native-map-link": "^2.10.2",
     "react-native-maps": "0.30.2",
+    "react-native-multiple-select": "^0.5.11",
     "react-native-pager-view": "5.4.15",
     "react-native-ratings": "^8.1.0",
     "react-native-read-more-text": "^1.1.2",
