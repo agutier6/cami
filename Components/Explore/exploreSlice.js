@@ -93,7 +93,6 @@ export const exploreReducer = createSlice({
         },
         setTypes: (state, action) => {
             state.types = action.payload
-            console.log(state.types);
         },
         addKeyword: (state, action) => {
             if (!state.keywords.find(action.payload)) {
@@ -132,12 +131,10 @@ export const exploreReducer = createSlice({
                     state.needMoreData = true;
                 }
             }
-            console.log(state.buffer.map(i => i ? i.name : 'empty'));
         },
         undo: (state) => {
             state.placeIds.push(state.buffer.shift());
             state.buffer.push(null);
-            console.log(state.buffer.map(i => i ? i.name : 'empty'));
         }
     },
     extraReducers(builder) {
