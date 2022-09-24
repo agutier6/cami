@@ -6,6 +6,7 @@ import store from './app/store'
 import { Provider } from 'react-redux'
 import { NativeBaseProvider } from "native-base";
 import { nativeBaseTheme } from "./styles/theme";
+import 'react-native-gesture-handler';
 
 const Stack = createNativeStackNavigator();
 

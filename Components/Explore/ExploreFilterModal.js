@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { useSelector, useDispatch } from 'react-redux'
-import { Center, Modal, FormControl, Button, Slider, Text, HStack, Icon, Checkbox } from 'native-base';
+import { Center, Modal, FormControl, Button, Slider, Text, HStack, Icon, Checkbox, Select } from 'native-base';
 import {
     changeRadius,
     // changeMinPrice,
@@ -8,7 +8,7 @@ import {
     // addKeyword,
     // removeKeyword,
     selectRadius,
-    selectTypes,
+    selectType,
     // selectKeywords,
     // selectMinPrice,
     selectMaxPrice,
@@ -20,7 +20,7 @@ import {
     selectExploreMapMarker,
     setRegion,
     setMapMarker,
-    setTypes
+    setType
 } from './exploreSlice';
 import { useWindowDimensions } from 'react-native';
 import { selectExploreLocation } from './exploreSlice';
@@ -31,7 +31,7 @@ export const ExploreFilterModal = () => {
     const navigation = useNavigation();
     const isFocused = useIsFocused();
     const radius = useSelector(selectRadius);
-    const types = useSelector(selectTypes);
+    const type = useSelector(selectType);
     // const keywords = useSelector(selectKeywords);
     // add ability to set min priace later
     // const minPrice = useSelector(selectMinPrice);
@@ -40,17 +40,12 @@ export const ExploreFilterModal = () => {
     const showFilterModal = useSelector(selectFilterModalVisible);
     const dispatch = useDispatch();
     const layout = useWindowDimensions();
-    const radiusMax = 5000 //meters
+    const radiusMax = 10000 //meters
     const radiusStep = 250 //meters
     const [radiusTemp, setRadiusTemp] = useState(radius);
     const [maxPriceTemp, setMaxPriceTemp] = useState(maxPrice);
-    // const [typesTemp, setTypesTemp] = useState(types);
-    const [restaurant, setRestaurant] = useState(types.some(type => type === 'restaurant'));
-    const [bar, setBar] = useState(types.some(type => type === 'bar'));
-    const [cafe, setCafe] = useState(types.some(type => type === 'cafe'));
-    const [nightclub, setNightclub] = useState(types.some(type => type === 'night_club'));
+    const [typeTemp, setTypeTemp] = useState(type);
     const location = useSelector(selectExploreLocation);
-    const region = useSelector(selectExploreRegion);
     const mapMarker = useSelector(selectExploreMapMarker);
 
     return (
@@ -59,10 +54,7 @@ export const ExploreFilterModal = () => {
                 dispatch(closeFilterModal());
                 setRadiusTemp(radius);
                 setMaxPriceTemp(maxPrice);
-                setRestaurant(types.some(type => type === 'restaurant'));
-                setBar(types.some(type => type === 'bar'));
-                setCafe(types.some(type => type === 'cafe'));
-                setNightclub(types.some(type => type === 'night_club'));
+                setTypeTemp(type);
                 dispatch(setRegion({
                     ...location,
                     latitudeDelta: 0.01,
@@ -91,7 +83,7 @@ export const ExploreFilterModal = () => {
                             <HStack alignItems="flex-start" space={1}>
                                 <Text>{String(Math.round(radiusTemp * 10 / (units ? 1609 : 1000)) / 10)} {(units ? "mi" : "km")}</Text>
                                 <Slider w="4/5" maxW={0.8 * layout.width} defaultValue={radiusTemp}
-                                    minValue={0} maxValue={radiusMax} accessibilityLabel="Search Radius" step={radiusStep}
+                                    minValue={500} maxValue={radiusMax} accessibilityLabel="Search Radius" step={radiusStep}
                                     onChangeEnd={(value) => setRadiusTemp(value)} position="absolute" right={0}>
                                     <Slider.Track>
                                         <Slider.FilledTrack />
@@ -102,32 +94,13 @@ export const ExploreFilterModal = () => {
                         </FormControl>
                         <FormControl mt="3">
                             <FormControl.Label>Categories</FormControl.Label>
-                            {/* <Checkbox.Group onChange={values => setTypesTemp(values || [])} value={typesTemp} accessibilityLabel="Choose categories">
-                                <Checkbox value="restaurant">Restaurants</Checkbox>
-                                <Checkbox value="cafe">Cafes</Checkbox>
-                                <Checkbox value="bar">Bars</Checkbox>
-                                <Checkbox value="night_club">Night Clubs</Checkbox>
-                            </Checkbox.Group> */}
-                            <Checkbox value="restaurant" isChecked={restaurant}
-                                icon={<Icon as={Ionicons} name="restaurant" color="white" />}
-                                onChange={() => setRestaurant(!restaurant)}>
-                                Restaurants
-                            </Checkbox>
-                            <Checkbox value="cafe" isChecked={cafe}
-                                icon={<Icon as={Ionicons} name="cafe" color="white" />}
-                                onChange={() => setCafe(!cafe)}>
-                                Cafes
-                            </Checkbox>
-                            <Checkbox value="bar" isChecked={bar}
-                                icon={<Icon as={Ionicons} name="wine-sharp" color="white" />}
-                                onChange={() => setBar(!bar)}>
-                                Bars
-                            </Checkbox>
-                            <Checkbox value="night_club" isChecked={nightclub}
-                                icon={<Icon as={Ionicons} name="disc-sharp" color="white" />}
-                                onChange={() => setNightclub(!nightclub)}>
-                                Night Clubs
-                            </Checkbox>
+                            <Select selectedValue={typeTemp} accessibilityLabel="Choose Category" placeholder="Choose Category"
+                                onValueChange={itemValue => setTypeTemp(itemValue)}>
+                                <Select.Item label="Restaurants" value="restaurant" />
+                                <Select.Item label="Bars" value="bar" />
+                                <Select.Item label="Cafes" value="cafe" />
+                                <Select.Item label="Night Clubs" value="night_club" />
+                            </Select>
                         </FormControl>
                         <FormControl mt="3">
                             <FormControl.Label>Price Range</FormControl.Label>
@@ -150,10 +123,7 @@ export const ExploreFilterModal = () => {
                                 dispatch(closeFilterModal());
                                 setRadiusTemp(radius);
                                 setMaxPriceTemp(maxPrice);
-                                setRestaurant(types.some(type => type === 'restaurant'));
-                                setBar(types.some(type => type === 'bar'));
-                                setCafe(types.some(type => type === 'cafe'));
-                                setNightclub(types.some(type => type === 'night_club'));
+                                setTypeTemp(type);
                                 dispatch(setRegion({
                                     ...location,
                                     latitudeDelta: 0.01,
@@ -171,20 +141,7 @@ export const ExploreFilterModal = () => {
                                     dispatch(changeRadius(radiusTemp));
                                     dispatch(changeMaxPrice(maxPriceTemp));
                                     dispatch(setExploreLocation(mapMarker));
-                                    let typesTemp = []
-                                    if (restaurant) {
-                                        typesTemp = [...typesTemp, "restaurant"];
-                                    }
-                                    if (cafe) {
-                                        typesTemp = [...typesTemp, "cafe"];
-                                    }
-                                    if (bar) {
-                                        typesTemp = [...typesTemp, "bar"];
-                                    }
-                                    if (nightclub) {
-                                        typesTemp = [...typesTemp, "night_club"];
-                                    }
-                                    dispatch(setTypes(typesTemp))
+                                    dispatch(setType(typeTemp));
                                     dispatch(submitFilter());
                                 }}>
                                 Save

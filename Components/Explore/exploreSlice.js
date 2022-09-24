@@ -1,7 +1,6 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit'
 import { getPlaceDetails } from '../../services/googlePlaces/getPlaceDetails';
 import { nearbySearchByProminence, nearbySearchWithNextPageToken } from '../../services/googlePlaces/nearbySearch';
-import React from 'react';
 
 export const bufferSize = 4;
 export const undoAmount = 3;
@@ -13,20 +12,20 @@ export const fetchPlaceIds = createAsyncThunk('explore/fetchPlaceIds', async (ar
     const state = getState();
 
     if (state.explore.nextPageToken) {
-        const response = await nearbySearchWithNextPageToken(state.explore.location.latitude, state.explore.location.longitude, state.explore.radius, 'restaurant', '', state.explore.minPrice, state.explore.maxPrice, 'english', state.explore.nextPageToken);
+        const response = await nearbySearchWithNextPageToken(state.explore.location.latitude, state.explore.location.longitude, state.explore.radius, state.explore.type, state.explore.minPrice, state.explore.maxPrice, 'english', state.explore.nextPageToken);
         return response.data;
     }
 
-    const response = await nearbySearchByProminence(state.explore.location.latitude, state.explore.location.longitude, state.explore.radius, 'restaurant', '', state.explore.minPrice, state.explore.maxPrice, 'english');
+    const response = await nearbySearchByProminence(state.explore.location.latitude, state.explore.location.longitude, state.explore.radius, state.explore.type, state.explore.minPrice, state.explore.maxPrice, 'english');
     return response.data;
 })
 
 export const fetchPlaceDetails = createAsyncThunk('explore/fetchPlaceDetails', async (args, { getState }) => {
     const state = getState();
-    if (state.explore.placeIds.length === 0 && state.explore.buffer.length - undoAmount - 1 < 0) {
+    if (!state.explore.buffer[bufferSize - 1]) {
         return -1;
     }
-    const response = await getPlaceDetails(state.explore.buffer[state.explore.placeIds.length > 0 ? bufferSize - 1 : state.explore.buffer.length - undoAmount - 1].place_id);
+    const response = await getPlaceDetails(state.explore.buffer[bufferSize - 1].place_id);
     return response.data;
 })
 
@@ -38,8 +37,8 @@ export const exploreReducer = createSlice({
             longitude: null
         },
         locationStatus: 'idle',
-        radius: 500,
-        types: ["restaurant", "bar", "cafe", "night_club"],
+        radius: 2000,
+        type: "restaurant",
         keywords: [],
         minPrice: 0,
         maxPrice: 4,
@@ -63,6 +62,7 @@ export const exploreReducer = createSlice({
         placeDetailsError: null,
         needMoreData: false,
         buffer: [],
+        photoCount: [],
         nearbySearchEndReached: false
     },
     reducers: {
@@ -76,6 +76,7 @@ export const exploreReducer = createSlice({
             state.placeDetailsError = null;
             state.needMoreData = false;
             state.buffer = [];
+            state.photoCount = [];
             state.nearbySearchEndReached = false;
         },
         setExploreLocation: (state, action) => {
@@ -91,8 +92,8 @@ export const exploreReducer = createSlice({
         changeMaxPrice: (state, action) => {
             state.maxPrice = action.payload;
         },
-        setTypes: (state, action) => {
-            state.types = action.payload
+        setType: (state, action) => {
+            state.type = action.payload
         },
         addKeyword: (state, action) => {
             if (!state.keywords.find(action.payload)) {
@@ -118,23 +119,36 @@ export const exploreReducer = createSlice({
             state.mapMarker = action.payload
         },
         concatBuffer: (state) => {
-            state.buffer = state.placeIds.slice(state.placeIds.length - bufferSize, state.placeIds.length).concat(state.buffer);
-            state.placeIds.splice(state.placeIds.length - bufferSize, bufferSize);
+            state.buffer = Array(state.placeIds.length - bufferSize < 0 ? bufferSize - state.placeIds.length : 0).fill(null).concat(state.placeIds.slice(state.placeIds.length - bufferSize > 0 ? state.placeIds.length - bufferSize : 0, state.placeIds.length).concat(state.buffer));
+            state.placeIds.splice(state.placeIds.length - bufferSize > 0 ? state.placeIds.length - bufferSize : 0, bufferSize);
+            state.photoCount = Array(bufferSize).fill(0);
+            console.log(state.buffer.map(i => i ? i.name : "empty"))
         },
         swipe: (state) => {
-            if (state.buffer.length >= bufferSize + undoAmount || state.placeIds.length === 0) {
+            if (state.buffer.length >= bufferSize + undoAmount) {
                 state.buffer.pop();
+                state.photoCount.pop();
             }
             if (state.placeIds.length > 0) {
                 state.buffer.unshift(state.placeIds.pop());
+                state.photoCount.unshift(0);
                 if (state.placeIds.length <= fetchOffset) {
                     state.needMoreData = true;
                 }
+            } else {
+                state.buffer.unshift(null);
+                state.photoCount.unshift(null);
+                state.needMoreData = true;
             }
         },
         undo: (state) => {
             state.placeIds.push(state.buffer.shift());
+            state.photoCount.shift()
             state.buffer.push(null);
+            state.photoCount.push(null);
+        },
+        increasePhotoCount: (state) => {
+            state.photoCount[bufferSize - 1] = state.photoCount[bufferSize - 1] + 1;
         }
     },
     extraReducers(builder) {
@@ -185,7 +199,7 @@ export const exploreReducer = createSlice({
 export const { changeRadius,
     changeMinPrice,
     changeMaxPrice,
-    setTypes,
+    setType,
     addKeyword,
     removeKeyword,
     openFilterModal,
@@ -196,11 +210,12 @@ export const { changeRadius,
     undo,
     setExploreLocation,
     setMapMarker,
-    setRegion
+    setRegion,
+    increasePhotoCount
 } = exploreReducer.actions
 
 export const selectRadius = state => state.explore.radius
-export const selectTypes = state => state.explore.types
+export const selectType = state => state.explore.type
 export const selectKeywords = state => state.explore.keywords
 export const selectMinPrice = state => state.explore.minPrice
 export const selectMaxPrice = state => state.explore.maxPrice

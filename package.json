@@ -36,7 +36,6 @@
     "react-dom": "17.0.2",
     "react-native": "0.68.2",
     "react-native-geocoding": "^0.5.0",
-    "react-native-gesture-handler": "~2.2.1",
     "react-native-google-places-autocomplete": "^2.4.1",
     "react-native-keyboard-aware-scroll-view": "^0.9.5",
     "react-native-map-link": "^2.10.2",
@@ -57,7 +56,8 @@
     "reanimated-bottom-sheet": "^1.0.0-alpha.22",
     "redux-thunk": "^2.4.1",
     "styled-components": "^5.3.5",
-    "styled-system": "^5.1.5"
+    "styled-system": "^5.1.5",
+    "react-native-gesture-handler": "~2.2.1"
   },
   "devDependencies": {
     "@babel/core": "^7.12.9"
