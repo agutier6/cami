@@ -1,9 +1,9 @@
 import React, { useEffect, useMemo } from 'react'
 import { ExploreCard } from './ExploreCard';
 import { useSelector, useDispatch } from 'react-redux';
-import { undoAmount, bufferSize, fetchPlaceIds, selectPlaceIdStatus, selectPlaceIdError, selectNeedMoreData, selectExploreBuffer, concatBuffer, selectNearbySearchEndReached, fetchPlaceDetails, selectExploreLocationStatus, undo, selectPlaceIdLength } from './exploreSlice';
+import { undoAmount, bufferSize, fetchPlaceIds, selectPlaceIdStatus, selectPlaceIdError, selectNeedMoreData, selectExploreBuffer, concatBuffer, selectNearbySearchEndReached, fetchPlaceDetails, selectExploreLocationStatus, undo, selectPlaceIdLength, increasePhotoCount } from './exploreSlice';
 import CardSkeleton from './CardSkeleton';
-import { Ionicons } from '@expo/vector-icons';
+import { Ionicons, Fontisto } from '@expo/vector-icons';
 import { Fab, Icon, useToast } from 'native-base';
 import { useHeaderHeight } from '@react-navigation/elements';
 import { useWindowDimensions } from 'react-native';
@@ -49,7 +49,7 @@ const ExploreSwipe = () => {
             <>
                 {buffer.map((item, i) => {
                     if (item) {
-                        return <ExploreCard place={item} ref={cardRefs[i]} key={item.place_id} />
+                        return <ExploreCard place={item} ref={cardRefs[i]} index={i} key={item.place_id} />
                     }
                 })}
                 <Fab renderInPortal={false}
@@ -60,12 +60,19 @@ const ExploreSwipe = () => {
                         if (pointer > 0 && buffer[pointer]) {
                             dispatch(undo())
                             cardRefs[pointer].current.restoreCard();
+                            dispatch(fetchPlaceDetails());
                         } else {
                             toast.show({
                                 description: "Cannot undo, sorry!",
                                 placement: "top"
                             })
                         }
+                    }} />
+                <Fab renderInPortal={false}
+                    shadow={2} size="sm" bottom={layout.height * 0.375 - headerHeight - 1}
+                    icon={<Icon color="white" as={Fontisto} name="photograph" size="sm" />}
+                    onPress={() => {
+                        dispatch(increasePhotoCount());
                     }} />
             </>
         );
