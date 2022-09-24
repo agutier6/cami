@@ -122,7 +122,6 @@ export const exploreReducer = createSlice({
             state.buffer = Array(state.placeIds.length - bufferSize < 0 ? bufferSize - state.placeIds.length : 0).fill(null).concat(state.placeIds.slice(state.placeIds.length - bufferSize > 0 ? state.placeIds.length - bufferSize : 0, state.placeIds.length).concat(state.buffer));
             state.placeIds.splice(state.placeIds.length - bufferSize > 0 ? state.placeIds.length - bufferSize : 0, bufferSize);
             state.photoCount = Array(bufferSize).fill(0);
-            console.log(state.buffer.map(i => i ? i.name : "empty"))
         },
         swipe: (state) => {
             if (state.buffer.length >= bufferSize + undoAmount) {
@@ -140,14 +139,12 @@ export const exploreReducer = createSlice({
                 state.photoCount.unshift(null);
                 state.needMoreData = true;
             }
-            console.log(state.buffer.map(i => i ? i.name : "empty"))
         },
         undo: (state) => {
             state.placeIds.push(state.buffer.shift());
             state.photoCount.shift()
             state.buffer.push(null);
             state.photoCount.push(null);
-            console.log(state.buffer.map(i => i ? i.name : "empty"))
         },
         increasePhotoCount: (state) => {
             state.photoCount[bufferSize - 1] = state.photoCount[bufferSize - 1] + 1;
