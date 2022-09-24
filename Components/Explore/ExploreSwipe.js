@@ -56,10 +56,9 @@ const ExploreSwipe = () => {
                     shadow={2} size="sm" bottom={layout.height * 0.305 - headerHeight - 1}
                     icon={<Icon color="white" as={Ionicons} name="arrow-undo" size="sm" />}
                     onPress={() => {
-                        const pointer = placeIdLength > 0 ? bufferSize : buffer.length - undoAmount;
-                        if (pointer > 0 && buffer[pointer]) {
+                        if (buffer[bufferSize]) {
                             dispatch(undo())
-                            cardRefs[pointer].current.restoreCard();
+                            cardRefs[bufferSize].current.restoreCard();
                             dispatch(fetchPlaceDetails());
                         } else {
                             toast.show({
