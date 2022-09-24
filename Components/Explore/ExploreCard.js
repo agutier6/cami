@@ -49,6 +49,7 @@ export const ExploreCard = React.forwardRef((props, ref) => {
                 </AspectRatio>
                 <Center mb="5" position="absolute" bottom="0" px="3" py="1.5">
                     <Stack>
+                        <Heading size="sm" color="white">{props.place.category}</Heading>
                         <Heading size="2xl" color="white">{props.place.name}</Heading>
                         <HStack px="2" alignItems="flex-start" space={1} justifyContent="flex-start">
                             <Text fontSize="lg" _light={{
