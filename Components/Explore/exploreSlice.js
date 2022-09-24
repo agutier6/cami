@@ -140,12 +140,14 @@ export const exploreReducer = createSlice({
                 state.photoCount.unshift(null);
                 state.needMoreData = true;
             }
+            console.log(state.buffer.map(i => i ? i.name : "empty"))
         },
         undo: (state) => {
             state.placeIds.push(state.buffer.shift());
             state.photoCount.shift()
             state.buffer.push(null);
             state.photoCount.push(null);
+            console.log(state.buffer.map(i => i ? i.name : "empty"))
         },
         increasePhotoCount: (state) => {
             state.photoCount[bufferSize - 1] = state.photoCount[bufferSize - 1] + 1;
