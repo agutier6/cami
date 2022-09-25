@@ -10,9 +10,8 @@ import { useSelector } from 'react-redux';
 import { selectPlaceDetails, selectPlaceDetailsStatus } from './exploreSlice';
 import ReadMore from '@fawazahmed/react-native-read-more';
 import { TabView, SceneMap, TabBar } from 'react-native-tab-view';
-import { MaterialIcons } from '@expo/vector-icons';
+import { MaterialIcons, MaterialCommunityIcons, Feather, Entypo } from '@expo/vector-icons';
 import { theme } from '../../styles/theme';
-import { Entypo } from '@expo/vector-icons';
 import PlaceOpen from '../PlaceUtils/PlaceOpen';
 import { OpenMaps } from '../PlaceUtils/OpenMaps';
 
@@ -104,7 +103,58 @@ export default function PlaceDetailsModal() {
 
     const aboutRoute = () => (
         <Box>
-
+            <VStack mt={4}>
+                <Divider my="2" _light={{
+                    bg: "muted.300"
+                }} _dark={{
+                    bg: "muted.50"
+                }}
+                    w={layout.width * 0.9}
+                    ml={layout.width * 0.05}
+                />
+                <HStack space={3} my={2} mx={6}>
+                    <Icon as={Feather} name="map-pin" size="md" color="primary.500" />
+                    <Text>{placeDetails.formatted_address}</Text>
+                </HStack>
+                <Divider my="2" _light={{
+                    bg: "muted.300"
+                }} _dark={{
+                    bg: "muted.50"
+                }}
+                    w={layout.width * 0.9}
+                    ml={layout.width * 0.05}
+                />
+                <HStack space={3} my={2} mx={6}>
+                    <Icon as={MaterialIcons} name="phone" size="md" color="primary.500" />
+                    <Text>{placeDetails.formatted_phone_number}</Text>
+                </HStack>
+                <Divider my="2" _light={{
+                    bg: "muted.300"
+                }} _dark={{
+                    bg: "muted.50"
+                }}
+                    w={layout.width * 0.9}
+                    ml={layout.width * 0.05}
+                />
+                <HStack space={3} my={2} mx={6}>
+                    <Icon as={MaterialCommunityIcons} name="web" size="md" color="primary.500" />
+                    <Text>{placeDetails.website}</Text>
+                </HStack>
+                <Divider my="2" _light={{
+                    bg: "muted.300"
+                }} _dark={{
+                    bg: "muted.50"
+                }}
+                    w={layout.width * 0.9}
+                    ml={layout.width * 0.05}
+                />
+                <HStack space={3} my={2} mx={6}>
+                    <Icon as={Feather} name="calendar" size="md" color="primary.500" />
+                    <VStack>
+                        {placeDetails.opening_hours.weekday_text.map((day, i) => <Text key={i}>{day}</Text>)}
+                    </VStack>
+                </HStack>
+            </VStack>
         </Box>
     );
 
