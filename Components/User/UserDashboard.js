@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { Input, Icon, VStack, Button, FormControl, KeyboardAvoidingView, Text, Image, Box } from 'native-base';
 import { getAuth, signOut, sendEmailVerification } from 'firebase/auth';
 import { Ionicons, Entypo } from '@expo/vector-icons';
-import { useAuthentication } from '../../utils/useAuthentication';
 import { pickProfilePhoto, takeProfilePhoto } from "../../services/imagePicker";
 import { validateEmail, validateName } from "../../utils/validation";
 import { changeName, changeEmail } from '../../services/updateAccount'
@@ -10,7 +9,6 @@ import { createOneButtonAlert } from '../Alerts/OneButtonPopUp'
 
 function UserDashboard() {
     const auth = getAuth();
-    const [user] = useAuthentication();
     const [name, setName] = useState();
     const [email, setEmail] = useState();
     const [photoURL, setPhotoURL] = useState();
@@ -19,13 +17,13 @@ function UserDashboard() {
 
     useEffect(() => {
         let isSubscribed = true;
-        if (user && isSubscribed) {
-            setName(user.displayName ? user.displayName : "");
-            setEmail(user.email ? user.email : "");
-            setPhotoURL(user.photoURL ? user.photoURL : "");
+        if (auth.currentUser && isSubscribed) {
+            setName(auth.currentUser.displayName ? auth.currentUser.displayName : "");
+            setEmail(auth.currentUser.email ? auth.currentUser.email : "");
+            setPhotoURL(auth.currentUser.photoURL ? auth.currentUser.photoURL : "");
         }
         return () => isSubscribed = false;
-    }, [user]);
+    }, [auth.currentUser]);
 
     async function validateAndUpdate() {
         let nameValidated = validateName(name);
@@ -34,12 +32,12 @@ function UserDashboard() {
         setNameErrorMessage(nameValidated)
         setEmailErrorMessage(emailValidated);
         if (!(emailValidated || nameValidated)) {
-            if (name != user.displayName) {
-                const responseName = await changeName(user, name);
+            if (name != auth.currentUser.displayName) {
+                const responseName = await changeName(auth.currentUser, name);
                 responseMessage += responseName.success ? '' : responseName.message;
             }
-            if (email != user.email) {
-                const responseEmail = await changeEmail(user, email);
+            if (email != auth.currentUser.email) {
+                const responseEmail = await changeEmail(auth.currentUser, email);
                 responseMessage += responseEmail.success ? '' : responseEmail.message;
             }
             if (responseMessage.length > 0) {
@@ -61,8 +59,8 @@ function UserDashboard() {
                     md: "25%"
                 }} variant="outline"
                     onPress={async () => {
-                        let tempPhotoUrl = await pickProfilePhoto(user, user.uid);
-                        setPhotoURL(tempPhotoUrl ? tempPhotoUrl : user.photoURL);
+                        let tempPhotoUrl = await pickProfilePhoto(auth.currentUser, auth.currentUser.uid);
+                        setPhotoURL(tempPhotoUrl ? tempPhotoUrl : auth.currentUser.photoURL);
                     }}>
                     Choose Picture
                 </Button>
@@ -71,8 +69,8 @@ function UserDashboard() {
                     md: "25%"
                 }} variant="outline"
                     onPress={async () => {
-                        let tempPhotoUrl = await takeProfilePhoto(user, user.uid);
-                        setPhotoURL(tempPhotoUrl ? tempPhotoUrl : user.photoURL);
+                        let tempPhotoUrl = await takeProfilePhoto(auth.currentUser, auth.currentUser.uid);
+                        setPhotoURL(tempPhotoUrl ? tempPhotoUrl : auth.currentUser.photoURL);
                     }}>
                     Take Picture
                 </Button>

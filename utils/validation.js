@@ -74,7 +74,7 @@ export async function validateUsername(username) {
     const firestore = getFirestore();
     const q = query(collection(firestore, "users"), where("username", "==", username));
     const querySnapshot = await getDocs(q);
-    if (querySnapshot.length > 0) {
+    if (querySnapshot.docs.length > 0) {
         return 'Username already exists';
     }
     return false;

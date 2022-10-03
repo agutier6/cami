@@ -37,7 +37,8 @@ const Login = () => {
                         md: "25%"
                     }} InputLeftElement={<Icon as={<Entypo name="email" size={24} color="muted.700" />}
                         size={5} ml="2" color="muted.700" />} placeholder="Email"
-                        value={email} onChangeText={email => setEmail(email)} />
+                        value={email} onChangeText={email => setEmail(email)}
+                        autoCapitalize='none' />
                     <FormControl.ErrorMessage leftIcon={<Ionicons name="ios-warning-outline" size={24} color="red" />}>
                         {emailErrorMessage}
                     </FormControl.ErrorMessage>
