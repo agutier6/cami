@@ -14,13 +14,13 @@ export const ExploreCard = React.forwardRef((props, ref) => {
     const dispatch = useDispatch();
     const layout = useWindowDimensions();
     const photoCount = useSelector(state => state.explore.photoCount[props.index]);
-    const [photoUrl, setPhotoUrl] = useState(`https://maps.googleapis.com/maps/api/place/photo?photo_reference=${props.place.photos[0].photo_reference}&key=${Constants.manifest?.extra?.placesApiKey}&maxwidth=1600`);
+    const [photoUrl, setPhotoUrl] = useState(props.place.photos ? `https://maps.googleapis.com/maps/api/place/photo?photo_reference=${props.place.photos[0].photo_reference}&key=${Constants.manifest?.extra?.placesApiKey}&maxwidth=1600` : 'https://firebasestorage.googleapis.com/v0/b/cami-planner.appspot.com/o/photos%2Fcat_with_shades.jpg?alt=media&token=ef13423f-e3d7-4c3a-8702-a0476746fd26');
     const photos = useSelector(state => state.explore.placeDetails ? state.explore.placeDetails.photos : props.place.photos);
 
     useEffect(() => {
         let isSubscribed = true;
         if (photoCount > 0 && isSubscribed) {
-            setPhotoUrl(`https://maps.googleapis.com/maps/api/place/photo?photo_reference=${photos[photoCount % photos.length].photo_reference ? photos[photoCount % photos.length].photo_reference : ""}&key=${Constants.manifest?.extra?.placesApiKey}&maxwidth=1600`);
+            setPhotoUrl(photos[photoCount % photos.length].photo_reference ? `https://maps.googleapis.com/maps/api/place/photo?photo_reference=${photos[photoCount % photos.length].photo_reference}&key=${Constants.manifest?.extra?.placesApiKey}&maxwidth=1600` : 'https://firebasestorage.googleapis.com/v0/b/cami-planner.appspot.com/o/photos%2Fcat_with_shades.jpg?alt=media&token=ef13423f-e3d7-4c3a-8702-a0476746fd26');
         }
         return () => isSubscribed = false;
     }, [photoCount]);

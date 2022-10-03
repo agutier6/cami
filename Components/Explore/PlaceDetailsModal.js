@@ -35,7 +35,7 @@ export default function PlaceDetailsModal() {
 
     useEffect(() => {
         let isSubscribed = true;
-        if (placeDetailsStatus === 'succeeded' && isSubscribed) {
+        if (placeDetailsStatus === 'succeeded' && isSubscribed && placeDetails) {
             (async () => {
                 const result = await getApps({
                     latitude: placeDetails.geometry.location.lat,
