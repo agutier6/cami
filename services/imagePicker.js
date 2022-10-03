@@ -1,6 +1,7 @@
 import * as ImagePicker from "expo-image-picker";
 import { getStorage, ref, uploadBytes, getDownloadURL } from "firebase/storage";
-import { updateProfile } from 'firebase/auth'
+import { updateProfile } from 'firebase/auth';
+import { updateDoc, doc, getFirestore } from 'firebase/firestore';
 
 async function handleImagePicked(pickerResult, uploadPath) {
     try {
@@ -42,11 +43,20 @@ export async function takeProfilePhoto(user, userId) {
 }
 
 export async function updateProfilePhotoURL(user, photoURL) {
+    const firestore = getFirestore();
     if (photoURL) {
         updateProfile(user, {
             photoURL: photoURL
         }).catch((error) => {
             alert('Upload failed, sorry');
+            console.log(error);
+        }).then(async () => {
+            await updateDoc(doc(firestore, "users", user.uid), {
+                photoURL: photoURL
+            }).catch((error) => {
+                alert('Upload failed, sorry');
+                console.log(error);
+            });
         });
     } else {
         alert('Photo URL not found');
@@ -75,5 +85,6 @@ async function uploadImageAsync(uri, uploadPath) {
         const url = await getDownloadURL(snapshot.ref);
         return url;
     });
+
     return uploadTask;
 }

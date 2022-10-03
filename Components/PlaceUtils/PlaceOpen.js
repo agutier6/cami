@@ -61,11 +61,13 @@ export default function PlaceOpen({ openNow, periods, ...props }) {
     }
 
     useEffect(() => {
+        let isSubscribed = true;
         if (openNow) {
             setInfo(getNextClose());
         } else {
             setInfo(getNextOpen());
         }
+        return () => isSubscribed = false;
     }, [])
 
     if (openNow) {

@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo } from 'react'
 import { ExploreCard } from './ExploreCard';
 import { useSelector, useDispatch } from 'react-redux';
-import { undoAmount, bufferSize, fetchPlaceIds, selectPlaceIdStatus, selectPlaceIdError, selectNeedMoreData, selectExploreBuffer, concatBuffer, selectNearbySearchEndReached, fetchPlaceDetails, selectExploreLocationStatus, undo, selectPlaceIdLength, increasePhotoCount } from './exploreSlice';
+import { undoAmount, bufferSize, fetchPlaceIds, selectPlaceIdStatus, selectPlaceIdError, selectNeedMoreData, selectExploreBuffer, concatBuffer, selectNearbySearchEndReached, fetchPlaceDetails, selectExploreLocationStatus, undo, increasePhotoCount } from './exploreSlice';
 import CardSkeleton from './CardSkeleton';
 import { Ionicons, Fontisto } from '@expo/vector-icons';
 import { Fab, Icon, useToast } from 'native-base';
@@ -16,14 +16,14 @@ const ExploreSwipe = () => {
     const buffer = useSelector(selectExploreBuffer);
     const nearbySearchEndReached = useSelector(selectNearbySearchEndReached);
     const locationStatus = useSelector(selectExploreLocationStatus);
-    const placeIdLength = useSelector(selectPlaceIdLength);
     const layout = useWindowDimensions();
     const headerHeight = useHeaderHeight();
     const cardRefs = useMemo(() => Array(undoAmount + bufferSize).fill(0).map(i => React.createRef()), [])
     const toast = useToast();
 
     useEffect(() => {
-        if (locationStatus === 'succeeded') {
+        let isSubscribed = true;
+        if (locationStatus === 'succeeded' && isSubscribed) {
             if (placeIdStatus === 'idle') {
                 dispatch(fetchPlaceIds());
             }
@@ -32,12 +32,15 @@ const ExploreSwipe = () => {
                 dispatch(fetchPlaceDetails());
             }
         }
+        return () => isSubscribed = false;
     }, [placeIdStatus, locationStatus, dispatch,]);
 
     useEffect(() => {
-        if (needMoreData && placeIdStatus != 'loading' && !nearbySearchEndReached) {
+        let isSubscribed = true;
+        if (needMoreData && placeIdStatus != 'loading' && !nearbySearchEndReached && isSubscribed) {
             dispatch(fetchPlaceIds());
         }
+        return () => isSubscribed = false;
     }, [needMoreData]);
 
     if (placeIdStatus === 'failed') {

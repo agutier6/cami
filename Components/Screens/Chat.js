@@ -1,11 +1,9 @@
-import { View, Text } from 'react-native'
 import React from 'react'
+import ChatMain from '../Chat/ChatMain'
 
 const Chat = () => {
     return (
-        <View>
-            <Text>Chat</Text>
-        </View>
+        <ChatMain />
     )
 }
 

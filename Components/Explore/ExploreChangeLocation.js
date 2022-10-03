@@ -1,6 +1,6 @@
 import MapView, { Marker } from 'react-native-maps';
 import { Box } from 'native-base';
-import React, { useState, useEffect } from 'react'
+import React, { useState } from 'react'
 import { useSelector, useDispatch } from 'react-redux';
 import { useWindowDimensions } from 'react-native';
 import { selectExploreLocation, selectExploreMapMarker, selectExploreRegion, setRegion, setMapMarker, openFilterModal } from './exploreSlice';

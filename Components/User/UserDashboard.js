@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Input, Icon, VStack, Button, FormControl, KeyboardAvoidingView, Text, Image, Box } from 'native-base';
-import { getAuth, signOut } from 'firebase/auth';
+import { getAuth, signOut, sendEmailVerification } from 'firebase/auth';
 import { Ionicons, Entypo } from '@expo/vector-icons';
-import { useAuthentication } from '../../utils/useAuthentication';
 import { pickProfilePhoto, takeProfilePhoto } from "../../services/imagePicker";
 import { validateEmail, validateName } from "../../utils/validation";
 import { changeName, changeEmail } from '../../services/updateAccount'
@@ -10,24 +9,21 @@ import { createOneButtonAlert } from '../Alerts/OneButtonPopUp'
 
 function UserDashboard() {
     const auth = getAuth();
-    const [user] = useAuthentication();
     const [name, setName] = useState();
     const [email, setEmail] = useState();
     const [photoURL, setPhotoURL] = useState();
-    const [emailVerified, setEmailVerified] = useState();
     const [nameErrorMessage, setNameErrorMessage] = useState();
     const [emailErrorMessage, setEmailErrorMessage] = useState();
-    const [uploading, setUploading] = useState();
-    // const [photoUrlPromise, setPhotoUrlPromise] = useState();
 
     useEffect(() => {
-        if (user) {
-            setName(user.displayName ? user.displayName : "");
-            setEmail(user.email ? user.email : "");
-            setPhotoURL(user.photoURL ? user.photoURL : "");
-            setEmailVerified(user.emailVerified ? user.emailVerified : false);
+        let isSubscribed = true;
+        if (auth.currentUser && isSubscribed) {
+            setName(auth.currentUser.displayName ? auth.currentUser.displayName : "");
+            setEmail(auth.currentUser.email ? auth.currentUser.email : "");
+            setPhotoURL(auth.currentUser.photoURL ? auth.currentUser.photoURL : "");
         }
-    }, [user]);
+        return () => isSubscribed = false;
+    }, [auth.currentUser]);
 
     async function validateAndUpdate() {
         let nameValidated = validateName(name);
@@ -36,12 +32,12 @@ function UserDashboard() {
         setNameErrorMessage(nameValidated)
         setEmailErrorMessage(emailValidated);
         if (!(emailValidated || nameValidated)) {
-            if (name != user.displayName) {
-                const responseName = await changeName(user, name);
+            if (name != auth.currentUser.displayName) {
+                const responseName = await changeName(auth.currentUser, name);
                 responseMessage += responseName.success ? '' : responseName.message;
             }
-            if (email != user.email) {
-                const responseEmail = await changeEmail(user, email);
+            if (email != auth.currentUser.email) {
+                const responseEmail = await changeEmail(auth.currentUser, email);
                 responseMessage += responseEmail.success ? '' : responseEmail.message;
             }
             if (responseMessage.length > 0) {
@@ -63,8 +59,8 @@ function UserDashboard() {
                     md: "25%"
                 }} variant="outline"
                     onPress={async () => {
-                        let tempPhotoUrl = await pickProfilePhoto(user, user.uid);
-                        setPhotoURL(tempPhotoUrl ? tempPhotoUrl : user.photoURL);
+                        let tempPhotoUrl = await pickProfilePhoto(auth.currentUser, auth.currentUser.uid);
+                        setPhotoURL(tempPhotoUrl ? tempPhotoUrl : auth.currentUser.photoURL);
                     }}>
                     Choose Picture
                 </Button>
@@ -73,8 +69,8 @@ function UserDashboard() {
                     md: "25%"
                 }} variant="outline"
                     onPress={async () => {
-                        let tempPhotoUrl = await takeProfilePhoto(user, user.uid);
-                        setPhotoURL(tempPhotoUrl ? tempPhotoUrl : user.photoURL);
+                        let tempPhotoUrl = await takeProfilePhoto(auth.currentUser, auth.currentUser.uid);
+                        setPhotoURL(tempPhotoUrl ? tempPhotoUrl : auth.currentUser.photoURL);
                     }}>
                     Take Picture
                 </Button>
@@ -100,6 +96,25 @@ function UserDashboard() {
                         {emailErrorMessage}
                     </FormControl.ErrorMessage>
                 </FormControl>
+                {auth.emailVerified &&
+                    <Box>
+                        <VStack>
+                            <Text>
+                                It looks like your email is not verified.
+                            </Text>
+                            <Button onPress={() => {
+                                sendEmailVerification(auth.currentUser)
+                                    .catch((error) => {
+                                        createOneButtonAlert('Success', 'We sent a verification email to your account.', 'Close');
+                                    })
+                                    .catch((error) => {
+                                        createOneButtonAlert('Error', error, 'Close');
+                                    })
+                            }}>
+                                Send verification email!
+                            </Button>
+                        </VStack>
+                    </Box>}
                 <Button w={{
                     base: "75%",
                     md: "25%"

@@ -4,7 +4,7 @@ import { useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { Input, Icon, VStack, Link, Button, Box, FormControl, KeyboardAvoidingView } from 'native-base';
 import { signUp } from '../../services/signUp';
-import { getAuth } from 'firebase/auth';
+import { getAuth, sendEmailVerification } from 'firebase/auth';
 import { createOneButtonAlert } from '../Alerts/OneButtonPopUp';
 import { validateConfirmPassword, validateEmail, validateName, validatePassword } from '../../utils/validation';
 
@@ -38,6 +38,14 @@ const Signup = () => {
             let response = await signUp(auth, email, password, name);
             if (!response.success) {
                 createOneButtonAlert('Error', response.message, 'Try Again');
+            } else {
+                sendEmailVerification(auth.currentUser)
+                    .then(() => {
+                        createOneButtonAlert('Success', 'You\'re account has been created and we sent a verification link to your email.', 'Close');
+                    })
+                    .catch((error) => {
+                        createOneButtonAlert('Error', error, 'Close');
+                    })
             }
         }
     }
@@ -62,7 +70,8 @@ const Signup = () => {
                         md: "25%"
                     }} InputLeftElement={<Icon as={<Entypo name="email" size={24} color="muted.700" />}
                         size={5} ml="2" color="muted.700" />} placeholder="Email"
-                        value={email} onChangeText={email => setEmail(email)} />
+                        value={email} onChangeText={email => setEmail(email)}
+                        autoCapitalize='none' />
                     <FormControl.ErrorMessage leftIcon={<Ionicons name="ios-warning-outline" size={24} color="red" />}>
                         {emailErrorMessage}
                     </FormControl.ErrorMessage>
@@ -71,8 +80,10 @@ const Signup = () => {
                     <Input w={{
                         base: "75%",
                         md: "25%"
-                    }} type={show ? "text" : "password"} InputRightElement={<Icon as={<Ionicons name={show ? "eye-outline" : "eye-off-outline"} />}
-                        size={5} mr="2" color="muted.700" onPress={() => setShow(!show)} />} placeholder="Password"
+                    }} type={show ? "text" : "password"}
+                        InputLeftElement={<Icon as={<Ionicons name="lock-closed-outline" size={24} color="muted.700" />} size={5} ml="2" color="muted.700" />}
+                        InputRightElement={<Icon as={<Ionicons name={show ? "eye-outline" : "eye-off-outline"} />}
+                            size={5} mr="2" color="muted.700" onPress={() => setShow(!show)} />} placeholder="Password"
                         value={password} onChangeText={password => setPassword(password)} />
                     <FormControl.ErrorMessage leftIcon={<Ionicons name="ios-warning-outline" size={24} color="red" />}>
                         {passwordErrorMessage}
@@ -82,8 +93,10 @@ const Signup = () => {
                     <Input w={{
                         base: "75%",
                         md: "25%"
-                    }} type={showConfirm ? "text" : "password"} InputRightElement={<Icon as={<Ionicons name={showConfirm ? "eye-outline" : "eye-off-outline"} />}
-                        size={5} mr="2" color="muted.700" onPress={() => setShowConfirm(!showConfirm)} />} placeholder="Confirm Password"
+                    }} type={showConfirm ? "text" : "password"}
+                        InputLeftElement={<Icon as={<Ionicons name="lock-closed-outline" size={24} color="muted.700" />} size={5} ml="2" color="muted.700" />}
+                        InputRightElement={<Icon as={<Ionicons name={showConfirm ? "eye-outline" : "eye-off-outline"} />}
+                            size={5} mr="2" color="muted.700" onPress={() => setShowConfirm(!showConfirm)} />} placeholder="Confirm Password"
                         value={confirmPassword} onChangeText={confirmPassword => setConfirmPassword(confirmPassword)} />
                     <FormControl.ErrorMessage leftIcon={<Ionicons name="ios-warning-outline" size={24} color="red" />}>
                         {confirmPasswordErrorMessage}

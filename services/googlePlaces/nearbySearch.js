@@ -27,3 +27,4 @@ export function nearbySearchWithNextPageToken(lat, long, radius, type, minprice,
     console.log('NextPage: ', url);
     return axios.get(url);
 }
+
