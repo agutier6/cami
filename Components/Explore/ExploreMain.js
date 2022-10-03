@@ -19,10 +19,11 @@ function ExploreMain() {
     const dispatch = useDispatch();
 
     useEffect(() => {
-        if (locationStatus === 'idle') {
+        let isSubscribed = true
+        if (locationStatus === 'idle' && isSubscribed) {
             dispatch(subscribeLocationForeground());
         }
-        if (locationStatus === 'succeeded') {
+        if (locationStatus === 'succeeded' && isSubscribed) {
             dispatch(setExploreLocation({
                 latitude: location.coords.latitude,
                 longitude: location.coords.longitude
@@ -38,6 +39,7 @@ function ExploreMain() {
                 longitude: location.coords.longitude
             }));
         }
+        return () => isSubscribed = false;
     }, [locationStatus, dispatch,])
 
     React.useLayoutEffect(() => {

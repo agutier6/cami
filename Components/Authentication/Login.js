@@ -46,7 +46,9 @@ const Login = () => {
                         base: "75%",
                         md: "25%"
                     }} type={show ? "text" : "password"} InputRightElement={<Icon as={<Ionicons name={show ? "eye-outline" : "eye-off-outline"} />}
-                        size={5} mr="2" color="muted.700" onPress={() => setShow(!show)} />} placeholder="Password"
+                        size={5} mr="2" color="muted.700" onPress={() => setShow(!show)} />}
+                        InputLeftElement={<Icon as={<Ionicons name="lock-closed-outline" size={24} color="muted.700" />} size={5} ml="2" color="muted.700" />}
+                        placeholder="Password"
                         value={password} onChangeText={password => setPassword(password)} />
                     <Button onPress={() => { validateAndLogIn() }} size="md" variant="outline">
                         Log In

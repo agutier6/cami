@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Input, Icon, VStack, Button, FormControl, KeyboardAvoidingView, Text, Image, Box } from 'native-base';
-import { getAuth, signOut } from 'firebase/auth';
+import { getAuth, signOut, sendEmailVerification } from 'firebase/auth';
 import { Ionicons, Entypo } from '@expo/vector-icons';
 import { useAuthentication } from '../../utils/useAuthentication';
 import { pickProfilePhoto, takeProfilePhoto } from "../../services/imagePicker";
@@ -14,19 +14,17 @@ function UserDashboard() {
     const [name, setName] = useState();
     const [email, setEmail] = useState();
     const [photoURL, setPhotoURL] = useState();
-    const [emailVerified, setEmailVerified] = useState();
     const [nameErrorMessage, setNameErrorMessage] = useState();
     const [emailErrorMessage, setEmailErrorMessage] = useState();
-    const [uploading, setUploading] = useState();
-    // const [photoUrlPromise, setPhotoUrlPromise] = useState();
 
     useEffect(() => {
-        if (user) {
+        let isSubscribed = true;
+        if (user && isSubscribed) {
             setName(user.displayName ? user.displayName : "");
             setEmail(user.email ? user.email : "");
             setPhotoURL(user.photoURL ? user.photoURL : "");
-            setEmailVerified(user.emailVerified ? user.emailVerified : false);
         }
+        return () => isSubscribed = false;
     }, [user]);
 
     async function validateAndUpdate() {
@@ -100,6 +98,25 @@ function UserDashboard() {
                         {emailErrorMessage}
                     </FormControl.ErrorMessage>
                 </FormControl>
+                {auth.emailVerified &&
+                    <Box>
+                        <VStack>
+                            <Text>
+                                It looks like your email is not verified.
+                            </Text>
+                            <Button onPress={() => {
+                                sendEmailVerification(auth.currentUser)
+                                    .catch((error) => {
+                                        createOneButtonAlert('Success', 'We sent a verification email to your account.', 'Close');
+                                    })
+                                    .catch((error) => {
+                                        createOneButtonAlert('Error', error, 'Close');
+                                    })
+                            }}>
+                                Send verification email!
+                            </Button>
+                        </VStack>
+                    </Box>}
                 <Button w={{
                     base: "75%",
                     md: "25%"

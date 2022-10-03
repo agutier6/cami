@@ -1,6 +1,8 @@
 import { updateProfile, updateEmail } from 'firebase/auth';
+import { updateDoc, doc, getFirestore } from 'firebase/firestore';
 
 export async function changeName(user, name) {
+    const firestore = getFirestore();
     var response = {
         success: true,
         message: 'Bingpot'
@@ -16,6 +18,14 @@ export async function changeName(user, name) {
             response.message = error.message;
             response.success = false;
             console.log(response.message);
+        }).then(async () => {
+            await updateDoc(doc(firestore, "users", user.uid), {
+                displayName: name
+            }).catch((error) => {
+                response.message = error.message;
+                response.success = false;
+                console.log(response.message);
+            });
         });
     }
     return {

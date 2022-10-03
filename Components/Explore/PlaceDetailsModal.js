@@ -1,5 +1,5 @@
 import React, { useRef, useState, useEffect } from 'react';
-import { Box, Text, Spinner, HStack, VStack, Image, Divider, Button, Icon, Skeleton, Link, Pressable } from 'native-base';
+import { Box, Text, Spinner, HStack, VStack, Image, Divider, Button, Icon, Skeleton, IconButton, Pressable } from 'native-base';
 import { FlatList } from 'react-native-gesture-handler';
 import Animated from 'react-native-reanimated';
 import { AirbnbRating } from 'react-native-ratings';
@@ -14,6 +14,7 @@ import { MaterialIcons, MaterialCommunityIcons, Feather, Entypo } from '@expo/ve
 import { theme } from '../../styles/theme';
 import PlaceOpen from '../PlaceUtils/PlaceOpen';
 import { getApps } from 'react-native-map-link';
+import * as Clipboard from 'expo-clipboard';
 
 
 export default function PlaceDetailsModal() {
@@ -33,7 +34,8 @@ export default function PlaceDetailsModal() {
     ]);
 
     useEffect(() => {
-        if (placeDetailsStatus === 'succeeded') {
+        let isSubscribed = true;
+        if (placeDetailsStatus === 'succeeded' && isSubscribed) {
             (async () => {
                 const result = await getApps({
                     latitude: placeDetails.geometry.location.lat,
@@ -46,6 +48,7 @@ export default function PlaceDetailsModal() {
                 setAvailableMapApps(result);
             })();
         }
+        return () => isSubscribed = false;
     }, [placeDetailsStatus]);
 
 
@@ -132,16 +135,29 @@ export default function PlaceDetailsModal() {
                     ml={layout.width * 0.05}
                 />
                 {availableMapApps.length > 0 &&
-                    <Pressable onPress={availableMapApps[0].open}>
-                        <HStack space={3} my={2} mx={6}>
+                    <HStack mx={6}>
+                        <Pressable onPress={availableMapApps[0].open}>
+                            <HStack space={3} my={2} w={layout.width * 0.8}>
+                                <Icon as={Feather} name="map-pin" size="md" color="primary.500" />
+                                <Text>{placeDetails.formatted_address}</Text>
+                            </HStack>
+                        </Pressable>
+                        <IconButton size="md" variant="ghost" borderRadius={3} _icon={{
+                            as: MaterialIcons,
+                            name: "content-copy"
+                        }} onPress={() => Clipboard.setStringAsync(placeDetails.formatted_address)} />
+                    </HStack>
+                }
+                {availableMapApps.length === 0 &&
+                    <HStack mx={6}>
+                        <HStack space={3} my={2} w={layout.width * 0.8}>
                             <Icon as={Feather} name="map-pin" size="md" color="primary.500" />
                             <Text>{placeDetails.formatted_address}</Text>
                         </HStack>
-                    </Pressable>}
-                {availableMapApps.length === 0 &&
-                    <HStack space={3} my={2} mx={6}>
-                        <Icon as={Feather} name="map-pin" size="md" color="primary.500" />
-                        <Text>{placeDetails.formatted_address}</Text>
+                        <IconButton size="md" variant="ghost" borderRadius={3} _icon={{
+                            as: MaterialIcons,
+                            name: "content-copy"
+                        }} onPress={() => Clipboard.setStringAsync(placeDetails.formatted_address)} />
                     </HStack>
                 }
                 <Divider my="2" _light={{
@@ -152,12 +168,18 @@ export default function PlaceDetailsModal() {
                     w={layout.width * 0.9}
                     ml={layout.width * 0.05}
                 />
-                <Pressable onPress={() => Linking.openURL(`tel:${placeDetails.international_phone_number ? placeDetails.international_phone_number : placeDetails.formatted_phone_number}`)}>
-                    <HStack space={3} my={2} mx={6}>
-                        <Icon as={MaterialIcons} name="phone" size="md" color="primary.500" />
-                        <Text>{placeDetails.formatted_phone_number}</Text>
-                    </HStack>
-                </Pressable>
+                <HStack mx={6}>
+                    <Pressable onPress={() => Linking.openURL(`tel:${placeDetails.international_phone_number ? placeDetails.international_phone_number : placeDetails.formatted_phone_number}`)}>
+                        <HStack space={3} my={2} w={layout.width * 0.8}>
+                            <Icon as={MaterialIcons} name="phone" size="md" color="primary.500" />
+                            <Text>{placeDetails.formatted_phone_number}</Text>
+                        </HStack>
+                    </Pressable>
+                    <IconButton size="md" variant="ghost" borderRadius={3} _icon={{
+                        as: MaterialIcons,
+                        name: "content-copy"
+                    }} onPress={() => Clipboard.setStringAsync(placeDetails.international_phone_number ? placeDetails.international_phone_number : placeDetails.formatted_phone_number)} />
+                </HStack>
                 <Divider my="2" _light={{
                     bg: "muted.300"
                 }} _dark={{
@@ -166,12 +188,18 @@ export default function PlaceDetailsModal() {
                     w={layout.width * 0.9}
                     ml={layout.width * 0.05}
                 />
-                <Pressable onPress={() => Linking.openURL(placeDetails.website)}>
-                    <HStack space={3} my={2} mx={6}>
-                        <Icon as={MaterialCommunityIcons} name="web" size="md" color="primary.500" />
-                        <Text>{placeDetails.website}</Text>
-                    </HStack>
-                </Pressable>
+                <HStack mx={6}>
+                    <Pressable onPress={() => Linking.openURL(placeDetails.website)}>
+                        <HStack space={3} my={2} w={layout.width * 0.8}>
+                            <Icon as={MaterialCommunityIcons} name="web" size="md" color="primary.500" />
+                            <Text>{placeDetails.website}</Text>
+                        </HStack>
+                    </Pressable>
+                    <IconButton size="md" variant="ghost" borderRadius={3} _icon={{
+                        as: MaterialIcons,
+                        name: "content-copy"
+                    }} onPress={() => Clipboard.setStringAsync(placeDetails.website)} />
+                </HStack>
                 <Divider my="2" _light={{
                     bg: "muted.300"
                 }} _dark={{
@@ -197,7 +225,7 @@ export default function PlaceDetailsModal() {
 
     const renderTabBar = props => (
         <>
-            {modalOpening && <TabBar
+            {modalOpen && <TabBar
                 {...props}
                 indicatorStyle={{ backgroundColor: theme.colors.primary.p300 }}
                 style={{

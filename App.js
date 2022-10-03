@@ -7,16 +7,19 @@ import { Provider } from 'react-redux'
 import { NativeBaseProvider } from "native-base";
 import { nativeBaseTheme } from "./styles/theme";
 import 'react-native-gesture-handler';
+import { SSRProvider } from "@react-aria/ssr";
 
 const Stack = createNativeStackNavigator();
 
 export default function App() {
   return (
-    <Provider store={store}>
-      <NativeBaseProvider theme={nativeBaseTheme}>
-        <RootNavigation />
-      </NativeBaseProvider>
-    </Provider>
+    <SSRProvider>
+      <Provider store={store}>
+        <NativeBaseProvider theme={nativeBaseTheme}>
+          <RootNavigation />
+        </NativeBaseProvider>
+      </Provider>
+    </SSRProvider>
   );
 }
 

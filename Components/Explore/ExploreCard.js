@@ -18,9 +18,11 @@ export const ExploreCard = React.forwardRef((props, ref) => {
     const photos = useSelector(state => state.explore.placeDetails ? state.explore.placeDetails.photos : props.place.photos);
 
     useEffect(() => {
-        if (photoCount > 0) {
+        let isSubscribed = true;
+        if (photoCount > 0 && isSubscribed) {
             setPhotoUrl(`https://maps.googleapis.com/maps/api/place/photo?photo_reference=${photos[photoCount % photos.length].photo_reference ? photos[photoCount % photos.length].photo_reference : ""}&key=${Constants.manifest?.extra?.placesApiKey}&maxwidth=1600`);
         }
+        return () => isSubscribed = false;
     }, [photoCount]);
 
     if (placeDetailsStatus === 'failed') {

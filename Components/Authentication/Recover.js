@@ -3,12 +3,26 @@ import { useNavigation } from '@react-navigation/native';
 import { Entypo } from '@expo/vector-icons';
 import { Input, Icon, VStack, Button, Box, FormControl, Link, KeyboardAvoidingView } from 'native-base';
 import { Ionicons } from '@expo/vector-icons';
+import { getAuth, sendPasswordResetEmail } from 'firebase/auth';
 import { validateEmail } from '../../utils/validation';
+import { createOneButtonAlert } from '../Alerts/OneButtonPopUp';
 
 const Recover = () => {
     const navigation = useNavigation();
+    const auth = getAuth();
     const [email, setEmail] = useState();
     const [emailErrorMessage, setEmailErrorMessage] = useState();
+
+    function validateAndRecover() {
+        let emailValidated = validateEmail(email);
+        setEmailErrorMessage(emailValidated);
+        if (!emailValidated) {
+            sendPasswordResetEmail(auth, email)
+                .then(() => {
+                    createOneButtonAlert('Success', 'If your email is in our sytem, you should receive a link to reset your password.', 'Close');
+                })
+        }
+    }
 
     return (
         <KeyboardAvoidingView alignItems="center" flex={1} justifyContent="center">
@@ -26,7 +40,7 @@ const Recover = () => {
                     <FormControl.ErrorMessage leftIcon={<Ionicons name="ios-warning-outline" size={24} color="red" />}>
                         {emailErrorMessage}
                     </FormControl.ErrorMessage>
-                    <Button onPress={() => { setEmailErrorMessage(validateEmail()) }} size="md" variant="outline">
+                    <Button onPress={() => validateAndRecover()} size="md" variant="outline">
                         Recover
                     </Button>
                     <Box flexDirection="row">
