@@ -79,7 +79,7 @@ export default function UserStack() {
                 })}>
                 <Tab.Screen name='Home' component={Home} options={{ headerShown: false }} />
                 <Tab.Screen name='Chat' component={Chat} />
-                <Tab.Screen name='Search' component={Search} />
+                <Tab.Screen name='Search' component={Search} options={{ headerShown: false }} />
             </Tab.Navigator>
         </NavigationContainer>
     );
