@@ -1,18 +1,24 @@
-import { Box, Avatar, Text, HStack, VStack, Spinner, Button } from 'native-base';
+import { Box, Avatar, Text, HStack, VStack, Spinner, Button, Spacer } from 'native-base';
 import React, { useEffect, useState } from 'react';
 import { doc, getDoc, getFirestore, onSnapshot } from "firebase/firestore";
 import { useWindowDimensions } from 'react-native';
-import { sendFriendRequest, acceptFriendRequest, deleteFriend } from '../../services/friendRequest';
+import { sendFriendRequest, acceptFriendRequest, deleteFriend, rejectFriendRequest, selectFriendRequestStatus, selectAcceptRequestError, selectAcceptRequestStatus, selectRejectRequestStatus, selectDeleteFriendStatus } from './userSlice';
 import { getAuth } from 'firebase/auth';
+import { useDispatch, useSelector } from 'react-redux';
 
 const UserProfile = ({ route, navigation }) => {
     const firestore = getFirestore();
     const [userData, setUserData] = useState(null);
     const [friendStatus, setFriendStatus] = useState(null);
     const layout = useWindowDimensions();
-    const auth = getAuth().currentUser.uid;
-
-    const { userId, username } = route.params;
+    const auth = getAuth();
+    const dispatch = useDispatch();
+    const friendRequestStatus = useSelector(selectFriendRequestStatus);
+    const acceptRequestStatus = useSelector(selectAcceptRequestStatus);
+    const rejectRequestStatus = useSelector(selectRejectRequestStatus);
+    const deleteFriendStatus = useSelector(selectDeleteFriendStatus);
+    const [userId] = useState(route.params.userId);
+    const [username] = useState(route.params.username);
 
     useEffect(() => {
         let isSubscribed = true;
@@ -23,19 +29,22 @@ const UserProfile = ({ route, navigation }) => {
                     setUserData(user.data());
                 }
             }
-            onSnapshot(doc(firestore, `users/${auth}/friends`, userId), (doc) => {
-                console.log("Current data: ", doc.data());
-                if (doc.exists()) {
-                    setFriendStatus(doc.data().status);
-                } else {
-                    setFriendStatus('empty');
-                }
-            });
             navigation.setOptions({ headerTitle: username });
             getUser();
         }
         return () => isSubscribed = false;
-    }, [])
+    }, []);
+
+    useEffect(() => {
+        const unsubscribe = onSnapshot(doc(firestore, `users/${auth.currentUser.uid}/friends`, userId), (doc) => {
+            if (doc.exists()) {
+                setFriendStatus(doc.data() ? doc.data().status : 'empty');
+            } else {
+                setFriendStatus('empty');
+            }
+        });
+        return () => unsubscribe();
+    }, []);
 
     if (!userData) {
         return (
@@ -58,20 +67,36 @@ const UserProfile = ({ route, navigation }) => {
                         {userData.displayName}
                     </Text>
                     {friendStatus === 'empty' &&
-                        <Button onPress={() => sendFriendRequest(auth, userId)}>
+                        <Button w={layout.width * 0.9} h={layout.height * 0.05}
+                            isLoading={(friendRequestStatus === 'loading' || acceptRequestStatus === 'loading' || rejectRequestStatus === 'loading' || deleteFriendStatus === 'loading')}
+                            onPress={() => dispatch(sendFriendRequest({ sender: auth.currentUser.uid, recipient: userId }))}>
                             Add Friend
                         </Button>}
                     {friendStatus === 'received' &&
-                        <Button onPress={() => acceptFriendRequest(userId, auth)}>
-                            Accept friend request
-                        </Button>}
+                        <HStack>
+                            <Button w={layout.width * 0.43} h={layout.height * 0.05}
+                                isLoading={(friendRequestStatus === 'loading' || acceptRequestStatus === 'loading' || rejectRequestStatus === 'loading' || deleteFriendStatus === 'loading')}
+                                onPress={() => dispatch(acceptFriendRequest({ sender: userId, recipient: auth.currentUser.uid }))}>
+                                Accept friend request
+                            </Button>
+                            <Spacer />
+                            <Button w={layout.width * 0.43} h={layout.height * 0.05} variant='outline'
+                                isLoading={(friendRequestStatus === 'loading' || acceptRequestStatus === 'loading' || rejectRequestStatus === 'loading' || deleteFriendStatus === 'loading')}
+                                onPress={() => dispatch(rejectFriendRequest({ sender: userId, recipient: auth.currentUser.uid }))}>
+                                Reject friend request
+                            </Button>
+                        </HStack>}
                     {friendStatus === 'sent' &&
-                        <Button onPress={() => deleteFriend(auth, userId)}>
+                        <Button w={layout.width * 0.9} h={layout.height * 0.05} variant='outline'
+                            isLoading={(friendRequestStatus === 'loading' || acceptRequestStatus === 'loading' || rejectRequestStatus === 'loading' || deleteFriendStatus === 'loading')}
+                            onPress={() => dispatch(deleteFriend({ sender: auth.currentUser.uid, recipient: userId }))}>
                             Cancel friend request
                         </Button>}
                     {friendStatus === 'accepted' &&
-                        <Button>
-                            Friends
+                        <Button w={layout.width * 0.9} h={layout.height * 0.05} variant='outline'
+                            isLoading={(friendRequestStatus === 'loading' || acceptRequestStatus === 'loading' || rejectRequestStatus === 'loading' || deleteFriendStatus === 'loading')}
+                            onPress={() => dispatch(deleteFriend({ sender: auth.currentUser.uid, recipient: userId }))}>
+                            Unfriend
                         </Button>}
                 </VStack>
             </VStack>
