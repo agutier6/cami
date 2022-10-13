@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Box, Input, VStack, HStack, FlatList, Avatar, Text, Pressable, Spacer } from 'native-base';
-import { collection, query, where, getFirestore, getDocs } from "firebase/firestore";
+import { collection, query, where, getFirestore, getDocs, getDoc, doc } from "firebase/firestore";
 import { useWindowDimensions } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import { getAuth } from 'firebase/auth';
 
 const MIN_SEARCH_INPUT_LENGTH = 3;
 
@@ -11,10 +12,26 @@ const SearchMain = () => {
     const [searchResults, setSearchResults] = useState();
     const layout = useWindowDimensions();
     const navigate = useNavigation();
+    const auth = getAuth();
+    const [username, setUsername] = useState(null);
+
+    useEffect(() => {
+        let isSubscribed = true;
+        if (isSubscribed) {
+            async function getUser() {
+                const user = await getDoc(doc(firestore, "users", auth.currentUser.uid));
+                if (user.exists()) {
+                    setUsername(user.data().username);
+                }
+            }
+            getUser();
+        }
+        return () => isSubscribed = false;
+    }, []);
 
     async function handleSearch(input) {
         if (input.length >= MIN_SEARCH_INPUT_LENGTH) {
-            const userQuery = query(collection(firestore, "users"), where('username', '>=', input.toLowerCase()), where('username', '<=', input.toLowerCase() + '~'))
+            const userQuery = query(collection(firestore, "users"), where('username', '>=', input.toLowerCase()), where('username', '<=', input.toLowerCase() + '~'), where('username', '!=', username))
             const querySnapshot = await getDocs(userQuery);
             setSearchResults(
                 querySnapshot.docs.map(doc => ({

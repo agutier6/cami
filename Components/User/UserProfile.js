@@ -2,7 +2,7 @@ import { Box, Avatar, Text, HStack, VStack, Spinner, Button, Spacer } from 'nati
 import React, { useEffect, useState } from 'react';
 import { doc, getDoc, getFirestore, onSnapshot } from "firebase/firestore";
 import { useWindowDimensions } from 'react-native';
-import { sendFriendRequest, acceptFriendRequest, deleteFriend, rejectFriendRequest, selectFriendRequestStatus, selectAcceptRequestError, selectAcceptRequestStatus, selectRejectRequestStatus, selectDeleteFriendStatus } from './userSlice';
+import { sendFriendRequest, acceptFriendRequest, deleteFriend, rejectFriendRequest, selectFriendRequestStatus, selectAcceptRequestError, selectAcceptRequestStatus, selectRejectRequestStatus, selectDeleteFriendStatus, cancelFriendRequest, selectCancelFriendRequestStatus } from './userSlice';
 import { getAuth } from 'firebase/auth';
 import { useDispatch, useSelector } from 'react-redux';
 
@@ -17,7 +17,9 @@ const UserProfile = ({ route, navigation }) => {
     const acceptRequestStatus = useSelector(selectAcceptRequestStatus);
     const rejectRequestStatus = useSelector(selectRejectRequestStatus);
     const deleteFriendStatus = useSelector(selectDeleteFriendStatus);
+    const cancelRequestStatus = useSelector(selectCancelFriendRequestStatus);
     const [userId] = useState(route.params ? route.params.userId : auth.currentUser.uid);
+
 
     useEffect(() => {
         let isSubscribed = true;
@@ -37,6 +39,7 @@ const UserProfile = ({ route, navigation }) => {
         let isSubscribed = true;
         if (isSubscribed && userData) {
             navigation.setOptions({ headerTitle: userData.username });
+            console.log(userData);
         }
         return () => isSubscribed = false;
     }, [userData]);
@@ -79,33 +82,33 @@ const UserProfile = ({ route, navigation }) => {
                         </Button>}
                     {friendStatus === 'empty' && userId != auth.currentUser.uid &&
                         <Button w={layout.width * 0.9} h={layout.height * 0.05}
-                            isLoading={(friendRequestStatus === 'loading' || acceptRequestStatus === 'loading' || rejectRequestStatus === 'loading' || deleteFriendStatus === 'loading')}
+                            isLoading={(friendRequestStatus === 'loading' || acceptRequestStatus === 'loading' || rejectRequestStatus === 'loading' || deleteFriendStatus === 'loading' || cancelRequestStatus === 'loading')}
                             onPress={() => dispatch(sendFriendRequest({ sender: auth.currentUser.uid, recipient: userId }))}>
                             Add Friend
                         </Button>}
                     {friendStatus === 'received' && userId != auth.currentUser.uid &&
                         <HStack>
                             <Button w={layout.width * 0.43} h={layout.height * 0.05}
-                                isLoading={(friendRequestStatus === 'loading' || acceptRequestStatus === 'loading' || rejectRequestStatus === 'loading' || deleteFriendStatus === 'loading')}
+                                isLoading={(friendRequestStatus === 'loading' || acceptRequestStatus === 'loading' || rejectRequestStatus === 'loading' || deleteFriendStatus === 'loading' || cancelRequestStatus === 'loading')}
                                 onPress={() => dispatch(acceptFriendRequest({ sender: userId, recipient: auth.currentUser.uid }))}>
                                 Accept friend request
                             </Button>
                             <Spacer />
                             <Button w={layout.width * 0.43} h={layout.height * 0.05} variant='outline'
-                                isLoading={(friendRequestStatus === 'loading' || acceptRequestStatus === 'loading' || rejectRequestStatus === 'loading' || deleteFriendStatus === 'loading')}
+                                isLoading={(friendRequestStatus === 'loading' || acceptRequestStatus === 'loading' || rejectRequestStatus === 'loading' || deleteFriendStatus === 'loading' || cancelRequestStatus === 'loading')}
                                 onPress={() => dispatch(rejectFriendRequest({ sender: userId, recipient: auth.currentUser.uid }))}>
                                 Reject friend request
                             </Button>
                         </HStack>}
                     {friendStatus === 'sent' && userId != auth.currentUser.uid &&
                         <Button w={layout.width * 0.9} h={layout.height * 0.05} variant='outline'
-                            isLoading={(friendRequestStatus === 'loading' || acceptRequestStatus === 'loading' || rejectRequestStatus === 'loading' || deleteFriendStatus === 'loading')}
-                            onPress={() => dispatch(deleteFriend({ sender: auth.currentUser.uid, recipient: userId }))}>
+                            isLoading={(friendRequestStatus === 'loading' || acceptRequestStatus === 'loading' || rejectRequestStatus === 'loading' || deleteFriendStatus === 'loading' || cancelRequestStatus === 'loading')}
+                            onPress={() => dispatch(cancelFriendRequest({ sender: auth.currentUser.uid, recipient: userId }))}>
                             Cancel friend request
                         </Button>}
                     {friendStatus === 'accepted' && userId != auth.currentUser.uid &&
                         <Button w={layout.width * 0.9} h={layout.height * 0.05} variant='outline'
-                            isLoading={(friendRequestStatus === 'loading' || acceptRequestStatus === 'loading' || rejectRequestStatus === 'loading' || deleteFriendStatus === 'loading')}
+                            isLoading={(friendRequestStatus === 'loading' || acceptRequestStatus === 'loading' || rejectRequestStatus === 'loading' || deleteFriendStatus === 'loading' || cancelRequestStatus === 'loading')}
                             onPress={() => dispatch(deleteFriend({ sender: auth.currentUser.uid, recipient: userId }))}>
                             Unfriend
                         </Button>}

@@ -1,6 +1,6 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit'
 import * as Location from 'expo-location';
-import { updateDoc, doc, getFirestore, getDoc, setDoc, deleteDoc } from 'firebase/firestore';
+import { updateDoc, doc, getFirestore, getDoc, setDoc, deleteDoc, runTransaction } from 'firebase/firestore';
 
 export const subscribeLocationForeground = createAsyncThunk('user/subscribeLocationForeground', async (arg, { getState }) => {
     let { status } = await Location.getForegroundPermissionsAsync();
@@ -16,68 +16,140 @@ export const subscribeLocationForeground = createAsyncThunk('user/subscribeLocat
 
 export const sendFriendRequest = createAsyncThunk('user/sendFriendRequest', async ({ sender, recipient }) => {
     const firestore = getFirestore();
-    const friendEntry = await getDoc(doc(firestore, `users/${sender}/friends`, recipient)).catch((error) => {
-        console.log(error.message);
-    });
-    if (!friendEntry.exists()) {
-        await setDoc(doc(firestore, `users/${sender}/friends`, recipient), { status: 'sent' }).catch((error) => {
-            console.log(error.message);
-        }).then(async () => {
-            await setDoc(doc(firestore, `users/${recipient}/friends`, sender), { status: 'received' }).catch((error) => {
-                console.log(error.message);
-            })
-        });
+    // const friendEntry = await getDoc(doc(firestore, `users/${sender}/friends`, recipient)).catch((error) => {
+    //     console.log(error.message);
+    // });
+    // if (!friendEntry.exists()) {
+    //     await setDoc(doc(firestore, `users/${sender}/friends`, recipient), { status: 'sent' }).catch((error) => {
+    //         console.log(error.message);
+    //     }).then(async () => {
+    //         await setDoc(doc(firestore, `users/${recipient}/friends`, sender), { status: 'received' }).catch((error) => {
+    //             console.log(error.message);
+    //         })
+    //     });
+    // }
+    try {
+        await runTransaction(firestore, async (transaction) => {
+            const friendEntry = await transaction.get(doc(firestore, `users/${sender}/friends`, recipient));
+            if (friendEntry.exists()) {
+                throw "Already sent friend request!";
+            }
+            transaction.set(doc(firestore, `users/${sender}/friends`, recipient), { status: 'sent' });
+            transaction.set(doc(firestore, `users/${recipient}/friends`, sender), { status: 'received' });
+        })
+    } catch (error) {
+        console.error(error);
     }
     return;
 });
 
 export const acceptFriendRequest = createAsyncThunk('user/acceptFriendRequest', async ({ sender, recipient }) => {
     const firestore = getFirestore();
-    const friendEntry = await getDoc(doc(firestore, `users/${recipient}/friends`, sender)).catch((error) => {
-        console.log(error.message);
-    });
-    if (friendEntry.exists() && friendEntry.data().status === 'received') {
-        await updateDoc(doc(firestore, `users/${recipient}/friends`, sender), { status: 'accepted' }).catch((error) => {
-            console.log(error.message);
-        }).then(async () => {
-            await updateDoc(doc(firestore, `users/${sender}/friends`, recipient), { status: 'accepted' }).catch((error) => {
-                console.log(error.message);
-            })
-        });
+    // const friendEntry = await getDoc(doc(firestore, `users/${recipient}/friends`, sender)).catch((error) => {
+    //     console.log(error.message);
+    // });
+    // if (friendEntry.exists() && friendEntry.data().status === 'received') {
+    //     await updateDoc(doc(firestore, `users/${recipient}/friends`, sender), { status: 'accepted' }).catch((error) => {
+    //         console.log(error.message);
+    //     }).then(async () => {
+    //         await updateDoc(doc(firestore, `users/${sender}/friends`, recipient), { status: 'accepted' }).catch((error) => {
+    //             console.log(error.message);
+    //         })
+    //     });
+    // }
+    try {
+        await runTransaction(firestore, async (transaction) => {
+            const friendEntry = await transaction.get(doc(firestore, `users/${recipient}/friends`, sender));
+            if (!friendEntry.exists() || friendEntry.data().status != 'received') {
+                throw "Friend request not found";
+            }
+            const recipientNumFriends = await transaction.get(doc(firestore, 'users', recipient));
+            const senderNumFriends = await transaction.get(doc(firestore, 'users', sender));
+            transaction.update(doc(firestore, `users/${recipient}/friends`, sender), { status: 'accepted' });
+            transaction.update(doc(firestore, `users/${sender}/friends`, recipient), { status: 'accepted' });
+            transaction.update(doc(firestore, 'users', recipient), { numFriends: recipientNumFriends.exists() && recipientNumFriends.data()["numFriends"] ? recipientNumFriends.data().numFriends + 1 : 1 });
+            transaction.update(doc(firestore, 'users', sender), { numFriends: senderNumFriends.exists() && senderNumFriends.data()["numFriends"] ? senderNumFriends.data().numFriends + 1 : 1 });
+        })
+    } catch (error) {
+        console.error(error);
     }
 });
 
 export const rejectFriendRequest = createAsyncThunk('user/rejectFriendRequest', async ({ sender, recipient }) => {
     const firestore = getFirestore();
-    const friendEntry = await getDoc(doc(firestore, `users/${recipient}/friends`, sender)).catch((error) => {
-        console.log(error.message);
-    });
+    // const friendEntry = await getDoc(doc(firestore, `users/${recipient}/friends`, sender)).catch((error) => {
+    //     console.log(error.message);
+    // });
 
-    if (friendEntry.exists() && friendEntry.data().status === 'received') {
-        await deleteDoc(doc(firestore, `users/${recipient}/friends`, sender)).catch((error) => {
-            console.log(error.message);
-        }).then(async () => {
-            await deleteDoc(doc(firestore, `users/${sender}/friends`, recipient)).catch((error) => {
-                console.log(error.message);
-            })
-        });
+    // if (friendEntry.exists() && friendEntry.data().status === 'received') {
+    //     await deleteDoc(doc(firestore, `users/${recipient}/friends`, sender)).catch((error) => {
+    //         console.log(error.message);
+    //     }).then(async () => {
+    //         await deleteDoc(doc(firestore, `users/${sender}/friends`, recipient)).catch((error) => {
+    //             console.log(error.message);
+    //         })
+    //     });
+    // }
+    try {
+        await runTransaction(firestore, async (transaction) => {
+            const friendEntry = await transaction.get(doc(firestore, `users/${recipient}/friends`, sender));
+            if (!friendEntry.exists() || friendEntry.data().status != 'received') {
+                throw "Friend request not found";
+            }
+            transaction.delete(doc(firestore, `users/${sender}/friends`, recipient));
+            transaction.delete(doc(firestore, `users/${recipient}/friends`, sender));
+        })
+    } catch (error) {
+        console.error(error);
     }
 });
 
 export const deleteFriend = createAsyncThunk('user/deleteFriend', async ({ sender, recipient }) => {
     const firestore = getFirestore();
-    const friendEntry = await getDoc(doc(firestore, `users/${sender}/friends`, recipient)).catch((error) => {
-        console.log(error.message);
-    });
+    // const friendEntry = await getDoc(doc(firestore, `users/${sender}/friends`, recipient)).catch((error) => {
+    //     console.log(error.message);
+    // });
 
-    if (friendEntry.exists()) {
-        await deleteDoc(doc(firestore, `users/${recipient}/friends`, sender)).catch((error) => {
-            console.log(error.message);
-        }).then(async () => {
-            await deleteDoc(doc(firestore, `users/${sender}/friends`, recipient)).catch((error) => {
-                console.log(error.message);
-            })
-        });
+    // if (friendEntry.exists()) {
+    //     await deleteDoc(doc(firestore, `users/${recipient}/friends`, sender)).catch((error) => {
+    //         console.log(error.message);
+    //     }).then(async () => {
+    //         await deleteDoc(doc(firestore, `users/${sender}/friends`, recipient)).catch((error) => {
+    //             console.log(error.message);
+    //         })
+    //     });
+    // }
+    try {
+        await runTransaction(firestore, async (transaction) => {
+            const friendEntry = await transaction.get(doc(firestore, `users/${recipient}/friends`, sender));
+            if (!friendEntry.exists()) {
+                throw "Could not find friend";
+            }
+            const recipientNumFriends = await transaction.get(doc(firestore, 'users', recipient));
+            const senderNumFriends = await transaction.get(doc(firestore, 'users', sender));
+            transaction.delete(doc(firestore, `users/${sender}/friends`, recipient));
+            transaction.delete(doc(firestore, `users/${recipient}/friends`, sender));
+            transaction.update(doc(firestore, 'users', recipient), { numFriends: recipientNumFriends.exists() && recipientNumFriends.data()["numFriends"] ? recipientNumFriends.data().numFriends - 1 : 0 });
+            transaction.update(doc(firestore, 'users', sender), { numFriends: senderNumFriends.exists() && senderNumFriends.data()["numFriends"] ? senderNumFriends.data().numFriends - 1 : 0 });
+        })
+    } catch (error) {
+        console.error(error);
+    }
+})
+
+export const cancelFriendRequest = createAsyncThunk('user/cancelFriendRequest', async ({ sender, recipient }) => {
+    const firestore = getFirestore();
+    try {
+        await runTransaction(firestore, async (transaction) => {
+            const friendEntry = await transaction.get(doc(firestore, `users/${recipient}/friends`, sender));
+            if (!friendEntry.exists() || friendEntry.data().status != 'received') {
+                throw "Could not find friend request";
+            }
+            transaction.delete(doc(firestore, `users/${sender}/friends`, recipient));
+            transaction.delete(doc(firestore, `users/${recipient}/friends`, sender));
+        })
+    } catch (error) {
+        console.error(error);
     }
 })
 
@@ -94,7 +166,9 @@ export const userReducer = createSlice({
         deleteFriendStatus: 'idle',
         deleteFriendError: null,
         rejectRequestStatus: 'idle',
-        rejectRequestError: null
+        rejectRequestError: null,
+        cancelRequestStatus: 'idle',
+        cancelRequestError: null
     },
     reducers: {
         clearLocation: (state) => {
@@ -159,6 +233,16 @@ export const userReducer = createSlice({
                 state.deleteFriendError = action.error.message;
                 state.deleteFriendStatus = 'failed';
             })
+            .addCase(cancelFriendRequest.pending, (state, action) => {
+                state.cancelRequestStatus = 'loading';
+            })
+            .addCase(cancelFriendRequest.fulfilled, (state, action) => {
+                state.cancelRequestStatus = 'succeeded';
+            })
+            .addCase(cancelFriendRequest.rejected, (state, action) => {
+                state.cancelRequestError = action.error.message;
+                state.cancelRequestStatus = 'failed';
+            })
     }
 })
 
@@ -176,5 +260,7 @@ export const selectRejectRequestStatus = state => state.user.rejectRequestStatus
 export const selectRejectRequestError = state => state.user.rejectRequestError
 export const selectDeleteFriendStatus = state => state.user.deleteFriendStatus
 export const selectDeleteFriendError = state => state.user.deleteFriendError
+export const selectCancelFriendRequestStatus = state => state.user.cancelRequestStatus
+export const selectCancelFriendRequestError = state => state.user.cancelRequestError
 
 export default userReducer.reducer
