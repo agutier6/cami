@@ -11,6 +11,7 @@ import { Box, Spinner } from 'native-base';
 import Home from '../Screens/Home';
 import Chat from '../Screens/Chat';
 import Search from '../Screens/Search';
+import User from '../Screens/User';
 
 const Tab = createBottomTabNavigator();
 
@@ -69,6 +70,8 @@ export default function UserStack() {
                             iconName = focused ? 'chatbubbles' : 'chatbubbles-outline';
                         } else if (route.name === 'Search') {
                             iconName = focused ? 'search' : 'search-outline';
+                        } else if (route.name === 'User') {
+                            iconName = focused ? 'person' : 'person-outline';
                         }
                         return <Ionicons name={iconName} size={size} color={color} />
                     },
@@ -80,6 +83,7 @@ export default function UserStack() {
                 <Tab.Screen name='Home' component={Home} options={{ headerShown: false }} />
                 <Tab.Screen name='Chat' component={Chat} />
                 <Tab.Screen name='Search' component={Search} options={{ headerShown: false }} />
+                <Tab.Screen name='User' component={User} options={{ headerShown: false }} />
             </Tab.Navigator>
         </NavigationContainer>
     );

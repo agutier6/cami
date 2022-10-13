@@ -47,7 +47,6 @@ function ExploreMain() {
             headerRight: () => (
                 <AntDesignHeaderButtons>
                     <Item title="explore-filter" iconName="filter" onPress={() => dispatch(openFilterModal())} />
-                    <Item title="user-dashboard" iconName="user" onPress={() => navigation.navigate("User Dashboard")} />
                 </AntDesignHeaderButtons>
             ),
         });

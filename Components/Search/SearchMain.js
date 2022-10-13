@@ -33,7 +33,7 @@ const SearchMain = () => {
                 <Input mx="3" placeholder="Find your friends" w="100%" onChangeText={(input) => handleSearch(input)} autoCapitalize='none' />
                 <FlatList keyboardShouldPersistTaps='handled' data={searchResults} renderItem={({
                     item
-                }) => <Pressable onPress={() => navigate.navigate("User Profile", { userId: item.id, username: item.username })}
+                }) => <Pressable onPress={() => navigate.navigate("User Profile", { userId: item.id })}
                     borderBottomWidth="1" _dark={{
                         borderColor: "muted.50"
                     }} borderColor="muted.200" pl={["0", "4"]} pr={["0", "5"]} py="2">

@@ -9,7 +9,7 @@ const Search = () => {
     return (
         <Stack.Navigator>
             <Stack.Screen name="Search People" component={SearchMain} />
-            <Stack.Screen name="User Profile" component={UserProfile} />
+            <Stack.Screen name="User Profile" component={UserProfile} options={{ title: "" }} />
         </Stack.Navigator>
     )
 }

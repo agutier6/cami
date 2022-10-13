@@ -17,8 +17,7 @@ const UserProfile = ({ route, navigation }) => {
     const acceptRequestStatus = useSelector(selectAcceptRequestStatus);
     const rejectRequestStatus = useSelector(selectRejectRequestStatus);
     const deleteFriendStatus = useSelector(selectDeleteFriendStatus);
-    const [userId] = useState(route.params.userId);
-    const [username] = useState(route.params.username);
+    const [userId] = useState(route.params ? route.params.userId : auth.currentUser.uid);
 
     useEffect(() => {
         let isSubscribed = true;
@@ -29,11 +28,18 @@ const UserProfile = ({ route, navigation }) => {
                     setUserData(user.data());
                 }
             }
-            navigation.setOptions({ headerTitle: username });
             getUser();
         }
         return () => isSubscribed = false;
     }, []);
+
+    useEffect(() => {
+        let isSubscribed = true;
+        if (isSubscribed && userData) {
+            navigation.setOptions({ headerTitle: userData.username });
+        }
+        return () => isSubscribed = false;
+    }, [userData]);
 
     useEffect(() => {
         const unsubscribe = onSnapshot(doc(firestore, `users/${auth.currentUser.uid}/friends`, userId), (doc) => {
@@ -66,13 +72,18 @@ const UserProfile = ({ route, navigation }) => {
                     <Text bold>
                         {userData.displayName}
                     </Text>
-                    {friendStatus === 'empty' &&
+                    {userId === auth.currentUser.uid &&
+                        <Button w={layout.width * 0.9} h={layout.height * 0.05} variant='outline'
+                            onPress={() => navigation.navigate("Edit Profile")}>
+                            Edit Profile
+                        </Button>}
+                    {friendStatus === 'empty' && userId != auth.currentUser.uid &&
                         <Button w={layout.width * 0.9} h={layout.height * 0.05}
                             isLoading={(friendRequestStatus === 'loading' || acceptRequestStatus === 'loading' || rejectRequestStatus === 'loading' || deleteFriendStatus === 'loading')}
                             onPress={() => dispatch(sendFriendRequest({ sender: auth.currentUser.uid, recipient: userId }))}>
                             Add Friend
                         </Button>}
-                    {friendStatus === 'received' &&
+                    {friendStatus === 'received' && userId != auth.currentUser.uid &&
                         <HStack>
                             <Button w={layout.width * 0.43} h={layout.height * 0.05}
                                 isLoading={(friendRequestStatus === 'loading' || acceptRequestStatus === 'loading' || rejectRequestStatus === 'loading' || deleteFriendStatus === 'loading')}
@@ -86,13 +97,13 @@ const UserProfile = ({ route, navigation }) => {
                                 Reject friend request
                             </Button>
                         </HStack>}
-                    {friendStatus === 'sent' &&
+                    {friendStatus === 'sent' && userId != auth.currentUser.uid &&
                         <Button w={layout.width * 0.9} h={layout.height * 0.05} variant='outline'
                             isLoading={(friendRequestStatus === 'loading' || acceptRequestStatus === 'loading' || rejectRequestStatus === 'loading' || deleteFriendStatus === 'loading')}
                             onPress={() => dispatch(deleteFriend({ sender: auth.currentUser.uid, recipient: userId }))}>
                             Cancel friend request
                         </Button>}
-                    {friendStatus === 'accepted' &&
+                    {friendStatus === 'accepted' && userId != auth.currentUser.uid &&
                         <Button w={layout.width * 0.9} h={layout.height * 0.05} variant='outline'
                             isLoading={(friendRequestStatus === 'loading' || acceptRequestStatus === 'loading' || rejectRequestStatus === 'loading' || deleteFriendStatus === 'loading')}
                             onPress={() => dispatch(deleteFriend({ sender: auth.currentUser.uid, recipient: userId }))}>

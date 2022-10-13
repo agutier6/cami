@@ -7,7 +7,7 @@ import { validateEmail, validateName } from "../../utils/validation";
 import { changeName, changeEmail } from '../../services/updateAccount'
 import { createOneButtonAlert } from '../Alerts/OneButtonPopUp'
 
-function UserDashboard() {
+function EditProfile() {
     const auth = getAuth();
     const [name, setName] = useState();
     const [email, setEmail] = useState();
@@ -134,4 +134,4 @@ function UserDashboard() {
     );
 }
 
-export default UserDashboard;
+export default EditProfile;
