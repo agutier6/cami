@@ -66,7 +66,7 @@ export default function UserStack() {
                         let iconName;
                         if (route.name === 'Home') {
                             iconName = focused ? 'home' : 'home-outline';
-                        } else if (route.name === 'Chat') {
+                        } else if (route.name === 'Chats') {
                             iconName = focused ? 'chatbubbles' : 'chatbubbles-outline';
                         } else if (route.name === 'Search') {
                             iconName = focused ? 'search' : 'search-outline';
@@ -81,7 +81,7 @@ export default function UserStack() {
                     tabBarActiveTintColor: theme.colors.primary.p500
                 })}>
                 <Tab.Screen name='Home' component={Home} options={{ headerShown: false }} />
-                <Tab.Screen name='Chat' component={Chat} options={{ headerShown: false }} />
+                <Tab.Screen name='Chats' component={Chat} options={{ headerShown: false }} />
                 <Tab.Screen name='Search' component={Search} options={{ headerShown: false }} />
                 <Tab.Screen name='User' component={User} options={{ headerShown: false }} />
             </Tab.Navigator>

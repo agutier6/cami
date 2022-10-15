@@ -2,7 +2,7 @@ import { Box, Avatar, Text, HStack, VStack, Spinner, Button, Spacer, Pressable }
 import React, { useEffect, useState, useLayoutEffect } from 'react';
 import { doc, getFirestore, onSnapshot } from "firebase/firestore";
 import { useWindowDimensions } from 'react-native';
-import { sendFriendRequest, acceptFriendRequest, deleteFriend, rejectFriendRequest, selectFriendRequestStatus, selectAcceptRequestStatus, selectRejectRequestStatus, selectDeleteFriendStatus, cancelFriendRequest, selectCancelFriendRequestStatus, clearFriendDetails } from './userSlice';
+import { sendFriendRequest, acceptFriendRequest, deleteFriend, rejectFriendRequest, selectFriendRequestStatus, selectAcceptRequestStatus, selectRejectRequestStatus, selectDeleteFriendStatus, cancelFriendRequest, selectCancelFriendRequestStatus, clearRequestDetails } from './userSlice';
 import { getAuth, signOut } from 'firebase/auth';
 import { useDispatch, useSelector } from 'react-redux';
 import { AntDesignHeaderButtons } from '../Navigation/MyHeaderButtons.js';
@@ -55,10 +55,13 @@ const UserProfile = ({ route, navigation }) => {
     }, [navigation, userData]);
 
     useEffect(() => {
-        setUserData(null);
-        setFriendStatus(null);
-        navigation.setOptions({ headerTitle: null });
-        dispatch(clearFriendDetails());
+        let isSubscribed = true;
+        if (isSubscribed && isFocused) {
+            setUserData(null);
+            setFriendStatus(null);
+            navigation.setOptions({ headerTitle: null });
+            dispatch(clearRequestDetails());
+        }
         const unsubscribeUser = onSnapshot(doc(firestore, "users", route["params"] ? route.params.userId : auth.currentUser.uid), (user) => {
             if (user.exists()) {
                 setUserData(user.data());
@@ -74,7 +77,8 @@ const UserProfile = ({ route, navigation }) => {
         return () => {
             unsubscribeUser();
             unsubscribeFriendStatus();
-            dispatch(clearFriendDetails());
+            dispatch(clearRequestDetails());
+            isSubscribed = false;
         };
     }, [isFocused, goBack]);
 

@@ -4,70 +4,49 @@ import { collection, query, where, getFirestore, getDocs, onSnapshot } from "fir
 import { useWindowDimensions } from 'react-native';
 import { useIsFocused } from '@react-navigation/native';
 import { getAuth } from 'firebase/auth';
-import { acceptFriendRequest, rejectFriendRequest, selectAcceptRequestStatus, selectRejectRequestStatus, clearFriendDetails } from './userSlice';
+import { acceptFriendRequest, rejectFriendRequest, selectAcceptRequestStatus, selectRejectRequestStatus, clearFriendDetails, selectGetFriendsStatus, selectGetFriendsDataStatus, getFriendsData, selectFriendsData, getFriends, clearRequestDetails, clearFriendData } from './userSlice';
 import { useDispatch, useSelector } from 'react-redux';
 
 const FriendsRequestsList = ({ navigation }) => {
-    const firestore = getFirestore();
-    const [friends, setFriends] = useState(null);
-    const [friendsData, setFriendsData] = useState([]);
     const layout = useWindowDimensions();
     const auth = getAuth();
     const isFocused = useIsFocused()
     const dispatch = useDispatch();
     const acceptRequestStatus = useSelector(selectAcceptRequestStatus);
     const rejectRequestStatus = useSelector(selectRejectRequestStatus);
+    const getFriendsStatus = useSelector(selectGetFriendsStatus);
+    const getFriendsDataStatus = useSelector(selectGetFriendsDataStatus);
+    const friendsData = useSelector(selectFriendsData);
 
     useEffect(() => {
         let isSubscribed = true;
+        console.log(1)
         if (isSubscribed) {
-            setFriends(null);
-            setFriendsData([]);
-            dispatch(clearFriendDetails());
-            async function getFriends() {
-                const friendsQuery = query(collection(firestore, `users/${auth.currentUser.uid}/friends`), where('status', '==', 'received'))
-                const querySnapshot = await getDocs(friendsQuery);
-                if (isSubscribed) {
-                    setFriends(querySnapshot.docs.map(doc => doc.id));
-                }
+            if (getFriendsStatus === 'idle' && isFocused) {
+                dispatch(getFriends({ status: 'received', userId: auth.currentUser.uid }))
             }
-            getFriends();
         }
-
         return () => {
             isSubscribed = false;
             dispatch(clearFriendDetails());
+            dispatch(clearFriendData());
         };
-    }, [isFocused]);
+    }, [dispatch, acceptRequestStatus, rejectRequestStatus]);
 
     useEffect(() => {
         let isSubscribed = true;
-        if (friends && isSubscribed) {
-            async function getFriendsData() {
-                for (let i = 0; i < friends.length; i += 10) {
-                    let array = friends.slice(i, Math.max(friends.length, i + 10));
-                    if (array.length > 0) {
-                        const friendsDataQuery = query(collection(firestore, 'users'), where('__name__', 'in', array))
-                        const querySnapshot = await getDocs(friendsDataQuery);
-                        if (isSubscribed) {
-                            setFriendsData(
-                                friendsData.concat(querySnapshot.docs.map(doc => ({
-                                    id: doc.id,
-                                    username: doc.data().username,
-                                    displayName: doc.data().displayName,
-                                    photoURL: doc.data().photoURL
-                                })))
-                            );
-                        }
-                    }
-                }
-            }
-            getFriendsData();
+        console.log(2)
+        if (getFriendsStatus === 'succeeded' && getFriendsDataStatus === 'idle' && acceptRequestStatus != 'loading' && rejectRequestStatus != 'loading' && isSubscribed && isFocused) {
+            dispatch(getFriendsData())
+            console.log('getData')
         }
-        return () => isSubscribed = false;
-    }, [friends])
+        return () => {
+            isSubscribed = false;
+            dispatch(clearRequestDetails());
+        };
+    }, [dispatch, getFriendsStatus])
 
-    if (!friends) {
+    if (getFriendsDataStatus != 'succeeded') {
         return (
             <Box flex={1} alignItems="center" justifyContent="center">
                 <Spinner size="lg" />
@@ -110,7 +89,8 @@ const FriendsRequestsList = ({ navigation }) => {
                                     isLoading={(acceptRequestStatus === 'loading' || rejectRequestStatus === 'loading')}
                                     onPress={() => {
                                         dispatch(acceptFriendRequest({ sender: item.id, recipient: auth.currentUser.uid }));
-                                        setFriends(friends.filter(friend => friend != item.id));
+                                        dispatch(clearFriendDetails());
+                                        dispatch(clearFriendData());
                                     }}>
                                     Accept
                                 </Button>
@@ -119,7 +99,8 @@ const FriendsRequestsList = ({ navigation }) => {
                                     isLoading={(acceptRequestStatus === 'loading' || rejectRequestStatus === 'loading')}
                                     onPress={() => {
                                         dispatch(rejectFriendRequest({ sender: item.id, recipient: auth.currentUser.uid }));
-                                        setFriends(friends.filter(friend => friend != item.id));
+                                        dispatch(clearFriendDetails());
+                                        dispatch(clearFriendData());
                                     }}>
                                     Reject
                                 </Button>
