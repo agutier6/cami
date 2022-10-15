@@ -9,7 +9,7 @@ async function handleImagePicked(pickerResult, uploadPath) {
             return await uploadImageAsync(pickerResult.uri, uploadPath);
         }
     } catch (e) {
-        console.log(e);
+        console.error(e);
         alert('Upload failed, sorry');
     }
 };
@@ -49,13 +49,13 @@ export async function updateProfilePhotoURL(user, photoURL) {
             photoURL: photoURL
         }).catch((error) => {
             alert('Upload failed, sorry');
-            console.log(error);
+            console.error(error);
         }).then(async () => {
             await updateDoc(doc(firestore, "users", user.uid), {
                 photoURL: photoURL
             }).catch((error) => {
                 alert('Upload failed, sorry');
-                console.log(error);
+                console.error(error);
             });
         });
     } else {
@@ -70,7 +70,7 @@ async function uploadImageAsync(uri, uploadPath) {
             resolve(xhr.response);
         };
         xhr.onerror = function (e) {
-            console.log(e);
+            console.error(e);
             reject(new TypeError('Network request failed'));
         };
         xhr.responseType = 'blob';

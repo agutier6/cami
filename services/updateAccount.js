@@ -55,3 +55,22 @@ export async function changeEmail(user, email) {
         message: response.message
     };
 }
+
+export async function changeDescription(user, desc) {
+    const firestore = getFirestore();
+    var response = {
+        success: true,
+        message: 'Bingpot'
+    }
+    await updateDoc(doc(firestore, "users", user.uid), {
+        description: desc
+    }).catch((error) => {
+        response.message = error.message;
+        response.success = false;
+        console.log(response.message);
+    });
+    return {
+        success: response.success,
+        message: response.message
+    };
+}

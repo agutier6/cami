@@ -1,10 +1,13 @@
-import { Box, Avatar, Text, HStack, VStack, Spinner, Button, Spacer } from 'native-base';
-import React, { useEffect, useState } from 'react';
+import { Box, Avatar, Text, HStack, VStack, Spinner, Button, Spacer, Pressable } from 'native-base';
+import React, { useEffect, useState, useLayoutEffect } from 'react';
 import { doc, getDoc, getFirestore, onSnapshot } from "firebase/firestore";
 import { useWindowDimensions } from 'react-native';
-import { sendFriendRequest, acceptFriendRequest, deleteFriend, rejectFriendRequest, selectFriendRequestStatus, selectAcceptRequestError, selectAcceptRequestStatus, selectRejectRequestStatus, selectDeleteFriendStatus, cancelFriendRequest, selectCancelFriendRequestStatus } from './userSlice';
-import { getAuth } from 'firebase/auth';
+import { sendFriendRequest, acceptFriendRequest, deleteFriend, rejectFriendRequest, selectFriendRequestStatus, selectAcceptRequestStatus, selectRejectRequestStatus, selectDeleteFriendStatus, cancelFriendRequest, selectCancelFriendRequestStatus, clearFriendDetails } from './userSlice';
+import { getAuth, signOut } from 'firebase/auth';
 import { useDispatch, useSelector } from 'react-redux';
+import { AntDesignHeaderButtons } from '../Navigation/MyHeaderButtons.js';
+import { Item } from 'react-navigation-header-buttons';
+import { useIsFocused } from '@react-navigation/native';
 
 const UserProfile = ({ route, navigation }) => {
     const firestore = getFirestore();
@@ -18,42 +21,71 @@ const UserProfile = ({ route, navigation }) => {
     const rejectRequestStatus = useSelector(selectRejectRequestStatus);
     const deleteFriendStatus = useSelector(selectDeleteFriendStatus);
     const cancelRequestStatus = useSelector(selectCancelFriendRequestStatus);
-    const [userId] = useState(route.params ? route.params.userId : auth.currentUser.uid);
+    const isFocused = useIsFocused();
+    const [goBack, setGoBack] = useState(false);
 
-
-    useEffect(() => {
+    useLayoutEffect(() => {
         let isSubscribed = true;
-        if (isSubscribed) {
-            async function getUser() {
-                const user = await getDoc(doc(firestore, "users", userId));
-                if (user.exists()) {
-                    setUserData(user.data());
-                }
-            }
-            getUser();
+        if (isSubscribed && (!route["params"] || (route["params"] ? route.params.userId : auth.currentUser.uid) === auth.currentUser.uid)) {
+            navigation.setOptions({
+                headerRight: () => (
+                    <AntDesignHeaderButtons>
+                        <Item title="user-menu" iconName="bars" onPress={() => signOut(auth)} />
+                    </AntDesignHeaderButtons>
+                ),
+                headerLeft: () => null
+            });
+        } else if (isSubscribed) {
+            navigation.setOptions({
+                headerRight: () => null,
+                headerLeft: () => (
+                    <AntDesignHeaderButtons>
+                        <Item title="user-menu" iconName="arrowleft" onPress={() => {
+                            navigation.navigate("User Profile");
+                            setGoBack(!goBack);
+                        }} />
+                    </AntDesignHeaderButtons>
+                ),
+            });
         }
-        return () => isSubscribed = false;
-    }, []);
-
-    useEffect(() => {
-        let isSubscribed = true;
         if (isSubscribed && userData) {
             navigation.setOptions({ headerTitle: userData.username });
-            console.log(userData);
         }
         return () => isSubscribed = false;
-    }, [userData]);
+    }, [navigation, userData]);
+
+    // useEffect(() => {
+    //     const unsubscribe = navigation.addListener("focus", () => {
+    //         dispatch(clearFriendDetails());
+    //         setUserData(null);
+    //         setFriendStatus(null);
+    //     })
+    //     return () => unsubscribe();
+    // }, [navigation])
 
     useEffect(() => {
-        const unsubscribe = onSnapshot(doc(firestore, `users/${auth.currentUser.uid}/friends`, userId), (doc) => {
+        setUserData(null);
+        setFriendStatus(null);
+        navigation.setOptions({ headerTitle: null });
+        const unsubscribeUser = onSnapshot(doc(firestore, "users", route["params"] ? route.params.userId : auth.currentUser.uid), (user) => {
+            if (user.exists()) {
+                setUserData(user.data());
+            }
+        });
+        const unsubscribeFriendStatus = onSnapshot(doc(firestore, `users/${auth.currentUser.uid}/friends`, route["params"] ? route.params.userId : auth.currentUser.uid), (doc) => {
             if (doc.exists()) {
                 setFriendStatus(doc.data() ? doc.data().status : 'empty');
             } else {
                 setFriendStatus('empty');
             }
         });
-        return () => unsubscribe();
-    }, []);
+        return () => {
+            // unsubscribe();
+            unsubscribeUser();
+            unsubscribeFriendStatus();
+            dispatch(clearFriendDetails());
+        };
+    }, [isFocused, goBack]);
 
     if (!userData) {
         return (
@@ -66,50 +98,62 @@ const UserProfile = ({ route, navigation }) => {
     return (
         <Box>
             <VStack>
-                <HStack mx={layout.width * 0.025} mt={layout.height * 0.025} mb={layout.height * 0.01}>
-                    <Avatar size="xl" source={{
+                <HStack mx={layout.width * 0.05} mt={layout.height * 0.025} mb={layout.height * 0.01} alignItems="center">
+                    <Avatar size={layout.width * 0.2} source={{
                         uri: userData.photoURL
                     }} />
+                    <Spacer />
+                    <Pressable onPress={() => navigation.navigate("Friends", { userId: route["params"] ? route.params.userId : auth.currentUser.uid })}>
+                        <VStack alignContent="center" alignItems="center">
+                            <Text bold>{userData["numFriends"] ? userData.numFriends : 0}</Text>
+                            <Text>Friends</Text>
+                        </VStack>
+                    </Pressable>
+                    <Spacer />
+                    <VStack alignContent="center" alignItems="center">
+                        <Text bold>{userData["likedRestaurants"] ? userData.likedRestaurants : 0}</Text>
+                        <Text>Restaurants</Text>
+                    </VStack>
                 </HStack>
                 <VStack mx={layout.width * 0.05} space={layout.width * 0.025}>
                     <Text bold>
                         {userData.displayName}
                     </Text>
-                    {userId === auth.currentUser.uid &&
+                    {(route["params"] ? route.params.userId : auth.currentUser.uid) === auth.currentUser.uid &&
                         <Button w={layout.width * 0.9} h={layout.height * 0.05} variant='outline'
-                            onPress={() => navigation.navigate("Edit Profile")}>
+                            onPress={() => navigation.navigate("Edit Profile", { desc: userData["description"] ? userData.description : "" })}>
                             Edit Profile
                         </Button>}
-                    {friendStatus === 'empty' && userId != auth.currentUser.uid &&
+                    {friendStatus === 'empty' && (route["params"] ? route.params.userId : auth.currentUser.uid) != auth.currentUser.uid &&
                         <Button w={layout.width * 0.9} h={layout.height * 0.05}
                             isLoading={(friendRequestStatus === 'loading' || acceptRequestStatus === 'loading' || rejectRequestStatus === 'loading' || deleteFriendStatus === 'loading' || cancelRequestStatus === 'loading')}
-                            onPress={() => dispatch(sendFriendRequest({ sender: auth.currentUser.uid, recipient: userId }))}>
+                            onPress={() => dispatch(sendFriendRequest({ sender: auth.currentUser.uid, recipient: (route["params"] ? route.params.userId : auth.currentUser.uid) }))}>
                             Add Friend
                         </Button>}
-                    {friendStatus === 'received' && userId != auth.currentUser.uid &&
+                    {friendStatus === 'received' && (route["params"] ? route.params.userId : auth.currentUser.uid) != auth.currentUser.uid &&
                         <HStack>
                             <Button w={layout.width * 0.43} h={layout.height * 0.05}
                                 isLoading={(friendRequestStatus === 'loading' || acceptRequestStatus === 'loading' || rejectRequestStatus === 'loading' || deleteFriendStatus === 'loading' || cancelRequestStatus === 'loading')}
-                                onPress={() => dispatch(acceptFriendRequest({ sender: userId, recipient: auth.currentUser.uid }))}>
+                                onPress={() => dispatch(acceptFriendRequest({ sender: (route["params"] ? route.params.userId : auth.currentUser.uid), recipient: auth.currentUser.uid }))}>
                                 Accept friend request
                             </Button>
                             <Spacer />
                             <Button w={layout.width * 0.43} h={layout.height * 0.05} variant='outline'
                                 isLoading={(friendRequestStatus === 'loading' || acceptRequestStatus === 'loading' || rejectRequestStatus === 'loading' || deleteFriendStatus === 'loading' || cancelRequestStatus === 'loading')}
-                                onPress={() => dispatch(rejectFriendRequest({ sender: userId, recipient: auth.currentUser.uid }))}>
+                                onPress={() => dispatch(rejectFriendRequest({ sender: (route["params"] ? route.params.userId : auth.currentUser.uid), recipient: auth.currentUser.uid }))}>
                                 Reject friend request
                             </Button>
                         </HStack>}
-                    {friendStatus === 'sent' && userId != auth.currentUser.uid &&
+                    {friendStatus === 'sent' && (route["params"] ? route.params.userId : auth.currentUser.uid) != auth.currentUser.uid &&
                         <Button w={layout.width * 0.9} h={layout.height * 0.05} variant='outline'
                             isLoading={(friendRequestStatus === 'loading' || acceptRequestStatus === 'loading' || rejectRequestStatus === 'loading' || deleteFriendStatus === 'loading' || cancelRequestStatus === 'loading')}
-                            onPress={() => dispatch(cancelFriendRequest({ sender: auth.currentUser.uid, recipient: userId }))}>
+                            onPress={() => dispatch(cancelFriendRequest({ sender: auth.currentUser.uid, recipient: (route["params"] ? route.params.userId : auth.currentUser.uid) }))}>
                             Cancel friend request
                         </Button>}
-                    {friendStatus === 'accepted' && userId != auth.currentUser.uid &&
+                    {friendStatus === 'accepted' && (route["params"] ? route.params.userId : auth.currentUser.uid) != auth.currentUser.uid &&
                         <Button w={layout.width * 0.9} h={layout.height * 0.05} variant='outline'
                             isLoading={(friendRequestStatus === 'loading' || acceptRequestStatus === 'loading' || rejectRequestStatus === 'loading' || deleteFriendStatus === 'loading' || cancelRequestStatus === 'loading')}
-                            onPress={() => dispatch(deleteFriend({ sender: auth.currentUser.uid, recipient: userId }))}>
+                            onPress={() => dispatch(deleteFriend({ sender: auth.currentUser.uid, recipient: (route["params"] ? route.params.userId : auth.currentUser.uid) }))}>
                             Unfriend
                         </Button>}
                 </VStack>

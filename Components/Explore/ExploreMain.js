@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useLayoutEffect } from 'react';
 import ExploreSwipe from './ExploreSwipe';
 import { useNavigation } from '@react-navigation/native';
 import { AntDesignHeaderButtons } from '../Navigation/MyHeaderButtons.js';
@@ -42,7 +42,7 @@ function ExploreMain() {
         return () => isSubscribed = false;
     }, [locationStatus, dispatch,])
 
-    React.useLayoutEffect(() => {
+    useLayoutEffect(() => {
         navigation.setOptions({
             headerRight: () => (
                 <AntDesignHeaderButtons>
