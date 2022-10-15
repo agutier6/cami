@@ -3,7 +3,7 @@ import { Box, VStack, HStack, FlatList, Avatar, Text, Pressable, Spacer, Spinner
 import { useWindowDimensions } from 'react-native';
 import { useIsFocused } from '@react-navigation/native';
 import { getAuth } from 'firebase/auth';
-import { acceptFriendRequest, rejectFriendRequest, selectAcceptRequestStatus, selectRejectRequestStatus, clearFriendDetails, selectGetFriendsStatus, selectGetFriendsDataStatus, getFriendsData, selectFriendsData, getFriends, clearRequestDetails, clearFriendData } from './userSlice';
+import { acceptFriendRequest, rejectFriendRequest, selectAcceptRequestStatus, selectRejectRequestStatus, clearFriendDetails, selectGetFriendsStatus, selectGetFriendsDataStatus, getFriendsData, selectFriendsData, getFriends } from './userSlice';
 import { useDispatch, useSelector } from 'react-redux';
 
 const FriendsRequestsList = ({ navigation }) => {
@@ -19,9 +19,7 @@ const FriendsRequestsList = ({ navigation }) => {
 
     useEffect(() => {
         let isSubscribed = true;
-        if (isFocused) {
-            dispatch(clearRequestDetails());
-            dispatch(clearFriendData());
+        if (isFocused && isSubscribed) {
             dispatch(clearFriendDetails());
         }
         return () => isSubscribed = false;
@@ -62,7 +60,7 @@ const FriendsRequestsList = ({ navigation }) => {
                 }} borderColor="muted.200" py="2"
                     mx={layout.width * 0.025}>
                         <HStack>
-                            <Pressable onPress={() => navigation.navigate("User Profile", { userId: item.id })}>
+                            <Pressable onPress={() => navigation.push("User Profile", { userId: item.id })}>
                                 <HStack space={[2, 3]} justifyContent="space-between" >
                                     <Avatar size="48px" source={{
                                         uri: item.photoURL
@@ -89,7 +87,6 @@ const FriendsRequestsList = ({ navigation }) => {
                                     onPress={() => {
                                         dispatch(acceptFriendRequest({ sender: item.id, recipient: auth.currentUser.uid }));
                                         dispatch(clearFriendDetails());
-                                        dispatch(clearFriendData());
                                     }}>
                                     Accept
                                 </Button>
@@ -99,7 +96,6 @@ const FriendsRequestsList = ({ navigation }) => {
                                     onPress={() => {
                                         dispatch(rejectFriendRequest({ sender: item.id, recipient: auth.currentUser.uid }));
                                         dispatch(clearFriendDetails());
-                                        dispatch(clearFriendData());
                                     }}>
                                     Reject
                                 </Button>

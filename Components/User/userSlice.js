@@ -157,25 +157,11 @@ export const userReducer = createSlice({
         clearLocation: (state) => {
             state.location = null;
         },
-        clearRequestDetails: (state) => {
-            state.friendRequestStatus = 'idle';
-            state.friendRequestError = null;
-            state.acceptRequestStatus = 'idle';
-            state.acceptRequestError = null;
-            state.deleteFriendStatus = 'idle';
-            state.deleteFriendError = null;
-            state.rejectRequestStatus = 'idle';
-            state.rejectRequestError = null;
-            state.cancelRequestStatus = 'idle';
-            state.cancelRequestError = null;
-        },
         clearFriendDetails: (state) => {
             state.getFriendsStatus = 'idle';
             state.getFriendsError = null;
             state.getFriendsDataStatus = 'idle';
             state.getFriendsDataError = null;
-        },
-        clearFriendData: (state) => {
             state.friends = null;
             state.friendsData = [];
         }
@@ -275,9 +261,7 @@ export const userReducer = createSlice({
 
 export const {
     clearLocation,
-    clearFriendDetails,
-    clearRequestDetails,
-    clearFriendData
+    clearFriendDetails
 } = userReducer.actions
 
 export const selectLocation = state => state.user.location

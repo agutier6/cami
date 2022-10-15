@@ -1,48 +1,63 @@
 import React, { useState, useEffect } from 'react';
 import { Box, Input, VStack, HStack, FlatList, Avatar, Text, Pressable, Spacer, Spinner } from 'native-base';
+import { collection, query, where, getFirestore, getDocs } from "firebase/firestore";
 import { useWindowDimensions } from 'react-native';
-import { useIsFocused } from '@react-navigation/native';
 import { getAuth } from 'firebase/auth';
 import { compareTwoStrings } from 'string-similarity';
-import { clearFriendDetails, selectGetFriendsStatus, selectGetFriendsDataStatus, getFriendsData, selectFriendsData, getFriends, clearFriendData } from './userSlice';
-import { useDispatch, useSelector } from 'react-redux';
 
 const FriendsList = ({ route, navigation }) => {
     const [searchFriends, setSearchFriends] = useState(null);
+    const firestore = getFirestore();
+    const [friends, setFriends] = useState(null);
+    const [friendsData, setFriendsData] = useState([]);
+    const [userId] = useState(route ? route.params.userId : auth.currentUser.uid);
     const layout = useWindowDimensions();
     const auth = getAuth();
-    const dispatch = useDispatch();
-    const isFocused = useIsFocused()
-    const getFriendsStatus = useSelector(selectGetFriendsStatus);
-    const getFriendsDataStatus = useSelector(selectGetFriendsDataStatus);
-    const friendsData = useSelector(selectFriendsData);
-
-    useEffect(() => {
-        let isSubscribed = true;
-        if (isFocused) {
-            dispatch(clearFriendData());
-            dispatch(clearFriendDetails());
-        }
-        return () => isSubscribed = false;
-    }, [isFocused]);
 
     useEffect(() => {
         let isSubscribed = true;
         if (isSubscribed) {
-            if (getFriendsStatus === 'idle' && isFocused) {
-                dispatch(getFriends({ status: 'accepted', userId: route ? route.params.userId : auth.currentUser.uid }))
+            setFriends(null);
+            setSearchFriends(null);
+            setFriendsData([]);
+            async function getFriends() {
+                const friendsQuery = query(collection(firestore, `users/${userId}/friends`), where('status', '==', 'accepted'))
+                const querySnapshot = await getDocs(friendsQuery);
+                if (isSubscribed) {
+                    setFriends(querySnapshot.docs.map(doc => doc.id));
+                }
             }
+            getFriends();
         }
         return () => isSubscribed = false;
-    }, [dispatch, getFriendsStatus]);
+    }, []);
 
     useEffect(() => {
         let isSubscribed = true;
-        if (getFriendsStatus === 'succeeded' && getFriendsDataStatus === 'idle' && isSubscribed && isFocused) {
-            dispatch(getFriendsData())
+        if (friends && isSubscribed) {
+            async function getFriendsData() {
+                for (let i = 0; i < friends.length; i += 10) {
+                    let array = friends.slice(i, Math.max(friends.length, i + 10));
+                    if (array.length > 0) {
+                        const friendsDataQuery = query(collection(firestore, 'users'), where('__name__', 'in', array))
+                        const querySnapshot = await getDocs(friendsDataQuery);
+                        if (isSubscribed) {
+                            setFriendsData(
+                                friendsData.concat(querySnapshot.docs.map(doc => ({
+                                    id: doc.id,
+                                    username: doc.data().username,
+                                    displayName: doc.data().displayName,
+                                    photoURL: doc.data().photoURL
+                                })))
+                            );
+                        }
+                    }
+                }
+            }
+            getFriendsData();
         }
         return () => isSubscribed = false;
-    }, [dispatch, getFriendsStatus])
+    }, [friends]);
 
     function handleSearch(input) {
         if (input.length > 0) {
@@ -68,7 +83,7 @@ const FriendsList = ({ route, navigation }) => {
         console.log(searchFriends);
     }
 
-    if (getFriendsDataStatus != 'succeeded') {
+    if (!friends) {
         return (
             <Box flex={1} alignItems="center" justifyContent="center">
                 <Spinner size="lg" />
@@ -81,7 +96,7 @@ const FriendsList = ({ route, navigation }) => {
                 <Input placeholder="Search" w={layout.width} onChangeText={(input) => handleSearch(input)} autoCapitalize='none' />
                 <FlatList keyboardShouldPersistTaps='handled' data={searchFriends ? searchFriends : friendsData} renderItem={({
                     item
-                }) => <Pressable onPress={() => navigation.navigate("User Profile", { userId: item.id })}
+                }) => <Pressable onPress={() => navigation.push("User Profile", { userId: item.id })}
                     borderBottomWidth="1" _dark={{
                         borderColor: "muted.50"
                     }} borderColor="muted.200" pl={["0", "4"]} pr={["0", "5"]} py="2">

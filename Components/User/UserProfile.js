@@ -2,12 +2,11 @@ import { Box, Avatar, Text, HStack, VStack, Spinner, Button, Spacer, Pressable }
 import React, { useEffect, useState, useLayoutEffect } from 'react';
 import { doc, getFirestore, onSnapshot } from "firebase/firestore";
 import { useWindowDimensions } from 'react-native';
-import { sendFriendRequest, acceptFriendRequest, deleteFriend, rejectFriendRequest, selectFriendRequestStatus, selectAcceptRequestStatus, selectRejectRequestStatus, selectDeleteFriendStatus, cancelFriendRequest, selectCancelFriendRequestStatus, clearRequestDetails } from './userSlice';
+import { sendFriendRequest, acceptFriendRequest, deleteFriend, rejectFriendRequest, selectFriendRequestStatus, selectAcceptRequestStatus, selectRejectRequestStatus, selectDeleteFriendStatus, cancelFriendRequest, selectCancelFriendRequestStatus } from './userSlice';
 import { getAuth, signOut } from 'firebase/auth';
 import { useDispatch, useSelector } from 'react-redux';
 import { AntDesignHeaderButtons } from '../Navigation/MyHeaderButtons.js';
 import { Item } from 'react-navigation-header-buttons';
-import { useIsFocused } from '@react-navigation/native';
 
 const UserProfile = ({ route, navigation }) => {
     const firestore = getFirestore();
@@ -21,8 +20,6 @@ const UserProfile = ({ route, navigation }) => {
     const rejectRequestStatus = useSelector(selectRejectRequestStatus);
     const deleteFriendStatus = useSelector(selectDeleteFriendStatus);
     const cancelRequestStatus = useSelector(selectCancelFriendRequestStatus);
-    const isFocused = useIsFocused();
-    const [goBack, setGoBack] = useState(false);
 
     useLayoutEffect(() => {
         let isSubscribed = true;
@@ -32,20 +29,7 @@ const UserProfile = ({ route, navigation }) => {
                     <AntDesignHeaderButtons>
                         <Item title="user-menu" iconName="bars" onPress={() => signOut(auth)} />
                     </AntDesignHeaderButtons>
-                ),
-                headerLeft: () => null
-            });
-        } else if (isSubscribed) {
-            navigation.setOptions({
-                headerRight: () => null,
-                headerLeft: () => (
-                    <AntDesignHeaderButtons>
-                        <Item title="user-menu" iconName="arrowleft" onPress={() => {
-                            navigation.navigate("User Profile");
-                            setGoBack(!goBack);
-                        }} />
-                    </AntDesignHeaderButtons>
-                ),
+                )
             });
         }
         if (isSubscribed && userData) {
@@ -55,13 +39,6 @@ const UserProfile = ({ route, navigation }) => {
     }, [navigation, userData]);
 
     useEffect(() => {
-        let isSubscribed = true;
-        if (isSubscribed && isFocused) {
-            setUserData(null);
-            setFriendStatus(null);
-            navigation.setOptions({ headerTitle: null });
-            dispatch(clearRequestDetails());
-        }
         const unsubscribeUser = onSnapshot(doc(firestore, "users", route["params"] ? route.params.userId : auth.currentUser.uid), (user) => {
             if (user.exists()) {
                 setUserData(user.data());
@@ -77,12 +54,8 @@ const UserProfile = ({ route, navigation }) => {
         return () => {
             unsubscribeUser();
             unsubscribeFriendStatus();
-            dispatch(clearRequestDetails());
-            setUserData(null);
-            setFriendStatus(null);
-            isSubscribed = false;
         };
-    }, [isFocused, goBack]);
+    }, []);
 
     if (!userData) {
         return (
@@ -100,7 +73,7 @@ const UserProfile = ({ route, navigation }) => {
                         uri: userData.photoURL
                     }} />
                     <Spacer />
-                    <Pressable onPress={() => navigation.navigate("Friends", { userId: route["params"] ? route.params.userId : auth.currentUser.uid })}>
+                    <Pressable onPress={() => navigation.push("Friends", { userId: route["params"] ? route.params.userId : auth.currentUser.uid })}>
                         <VStack alignContent="center" alignItems="center">
                             <Text bold>{userData["numFriends"] ? userData.numFriends : 0}</Text>
                             <Text>Friends</Text>
