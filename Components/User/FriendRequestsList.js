@@ -1,6 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect } from 'react';
 import { Box, VStack, HStack, FlatList, Avatar, Text, Pressable, Spacer, Spinner, Button } from 'native-base';
-import { collection, query, where, getFirestore, getDocs, onSnapshot } from "firebase/firestore";
 import { useWindowDimensions } from 'react-native';
 import { useIsFocused } from '@react-navigation/native';
 import { getAuth } from 'firebase/auth';
@@ -20,30 +19,30 @@ const FriendsRequestsList = ({ navigation }) => {
 
     useEffect(() => {
         let isSubscribed = true;
-        console.log(1)
-        if (isSubscribed) {
-            if (getFriendsStatus === 'idle' && isFocused) {
-                dispatch(getFriends({ status: 'received', userId: auth.currentUser.uid }))
-            }
-        }
-        return () => {
-            isSubscribed = false;
-            dispatch(clearFriendDetails());
+        if (isFocused) {
+            dispatch(clearRequestDetails());
             dispatch(clearFriendData());
-        };
-    }, [dispatch, acceptRequestStatus, rejectRequestStatus]);
+            dispatch(clearFriendDetails());
+        }
+        return () => isSubscribed = false;
+    }, [isFocused]);
 
     useEffect(() => {
         let isSubscribed = true;
-        console.log(2)
+        if (isSubscribed) {
+            if (getFriendsStatus === 'idle' && acceptRequestStatus != 'loading' && rejectRequestStatus != 'loading' && isFocused) {
+                dispatch(getFriends({ status: 'received', userId: auth.currentUser.uid }))
+            }
+        }
+        return () => isSubscribed = false;
+    }, [dispatch, acceptRequestStatus, rejectRequestStatus, getFriendsStatus]);
+
+    useEffect(() => {
+        let isSubscribed = true;
         if (getFriendsStatus === 'succeeded' && getFriendsDataStatus === 'idle' && acceptRequestStatus != 'loading' && rejectRequestStatus != 'loading' && isSubscribed && isFocused) {
             dispatch(getFriendsData())
-            console.log('getData')
         }
-        return () => {
-            isSubscribed = false;
-            dispatch(clearRequestDetails());
-        };
+        return () => isSubscribed = false;
     }, [dispatch, getFriendsStatus])
 
     if (getFriendsDataStatus != 'succeeded') {

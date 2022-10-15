@@ -172,6 +172,8 @@ export const userReducer = createSlice({
         clearFriendDetails: (state) => {
             state.getFriendsStatus = 'idle';
             state.getFriendsError = null;
+            state.getFriendsDataStatus = 'idle';
+            state.getFriendsDataError = null;
         },
         clearFriendData: (state) => {
             state.friends = null;
@@ -252,12 +254,10 @@ export const userReducer = createSlice({
             .addCase(getFriends.fulfilled, (state, action) => {
                 state.friends = action.payload;
                 state.getFriendsStatus = 'succeeded';
-                state.getFriendsDataStatus = 'idle';
-                state.getFriendsDataError = null;
             })
             .addCase(getFriends.rejected, (state, action) => {
-                state.getFriendsStatus = action.error.message;
-                state.getFriendsError = 'failed';
+                state.getFriendsError = action.error.message;
+                state.getFriendsStatus = 'failed';
             })
             .addCase(getFriendsData.pending, (state, action) => {
                 state.getFriendsDataStatus = 'loading';
@@ -267,8 +267,8 @@ export const userReducer = createSlice({
                 state.getFriendsDataStatus = 'succeeded';
             })
             .addCase(getFriendsData.rejected, (state, action) => {
-                state.getFriendsDataStatus = action.error.message;
-                state.getFriendsDataError = 'failed';
+                state.getFriendsDataError = action.error.message;
+                state.getFriendsDataStatus = 'failed';
             })
     }
 })

@@ -78,6 +78,8 @@ const UserProfile = ({ route, navigation }) => {
             unsubscribeUser();
             unsubscribeFriendStatus();
             dispatch(clearRequestDetails());
+            setUserData(null);
+            setFriendStatus(null);
             isSubscribed = false;
         };
     }, [isFocused, goBack]);
