@@ -1,19 +1,19 @@
-import React from 'react'
-import ChatMain from '../Chat/ChatMain'
+import React from 'react';
+import EditProfile from '../User/EditProfile';
 import UserProfile from '../User/UserProfile';
-import FriendsRequestsList from '../User/FriendRequestsList';
+import FriendsList from '../User/FriendsList';
 import { createStackNavigator } from '@react-navigation/stack';
 
 const Stack = createStackNavigator();
 
-const Chat = () => {
+const User = () => {
     return (
         <Stack.Navigator>
-            <Stack.Screen name="Chat" component={ChatMain} />
             <Stack.Screen name="User Profile" component={UserProfile} options={{ title: "" }} />
-            <Stack.Screen name="Friend Requests" component={FriendsRequestsList} />
+            <Stack.Screen name="Edit Profile" component={EditProfile} />
+            <Stack.Screen name="Friends" component={FriendsList} />
         </Stack.Navigator>
     )
 }
 
-export default Chat
+export default User

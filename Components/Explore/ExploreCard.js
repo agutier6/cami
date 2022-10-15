@@ -26,7 +26,7 @@ export const ExploreCard = React.forwardRef((props, ref) => {
     }, [photoCount]);
 
     if (placeDetailsStatus === 'failed') {
-        console.log('Card error: ' + placeDetailsError);
+        console.error('Card error: ' + placeDetailsError);
     }
 
     if (!props.place) {

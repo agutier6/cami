@@ -79,3 +79,11 @@ export async function validateUsername(username) {
     }
     return false;
 }
+
+export function validateDescription(desc) {
+    if (desc.length > 100 || !desc) {
+        return 'Description must be 100 characters or less.';
+    } else {
+        return false;
+    }
+}

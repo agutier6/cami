@@ -59,6 +59,7 @@
     "react-tinder-card": "^1.5.4",
     "reanimated-bottom-sheet": "^1.0.0-alpha.22",
     "redux-thunk": "^2.4.1",
+    "string-similarity": "^4.0.4",
     "styled-components": "^5.3.5",
     "styled-system": "^5.1.5"
   },
