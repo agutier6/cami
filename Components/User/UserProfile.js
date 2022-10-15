@@ -1,6 +1,6 @@
 import { Box, Avatar, Text, HStack, VStack, Spinner, Button, Spacer, Pressable } from 'native-base';
 import React, { useEffect, useState, useLayoutEffect } from 'react';
-import { doc, getDoc, getFirestore, onSnapshot } from "firebase/firestore";
+import { doc, getFirestore, onSnapshot } from "firebase/firestore";
 import { useWindowDimensions } from 'react-native';
 import { sendFriendRequest, acceptFriendRequest, deleteFriend, rejectFriendRequest, selectFriendRequestStatus, selectAcceptRequestStatus, selectRejectRequestStatus, selectDeleteFriendStatus, cancelFriendRequest, selectCancelFriendRequestStatus, clearFriendDetails } from './userSlice';
 import { getAuth, signOut } from 'firebase/auth';
@@ -54,19 +54,11 @@ const UserProfile = ({ route, navigation }) => {
         return () => isSubscribed = false;
     }, [navigation, userData]);
 
-    // useEffect(() => {
-    //     const unsubscribe = navigation.addListener("focus", () => {
-    //         dispatch(clearFriendDetails());
-    //         setUserData(null);
-    //         setFriendStatus(null);
-    //     })
-    //     return () => unsubscribe();
-    // }, [navigation])
-
     useEffect(() => {
         setUserData(null);
         setFriendStatus(null);
         navigation.setOptions({ headerTitle: null });
+        dispatch(clearFriendDetails());
         const unsubscribeUser = onSnapshot(doc(firestore, "users", route["params"] ? route.params.userId : auth.currentUser.uid), (user) => {
             if (user.exists()) {
                 setUserData(user.data());
@@ -80,7 +72,6 @@ const UserProfile = ({ route, navigation }) => {
             }
         });
         return () => {
-            // unsubscribe();
             unsubscribeUser();
             unsubscribeFriendStatus();
             dispatch(clearFriendDetails());

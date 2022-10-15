@@ -1,9 +1,18 @@
 import React from 'react'
 import ChatMain from '../Chat/ChatMain'
+import UserProfile from '../User/UserProfile';
+import FriendsRequestsList from '../User/FriendRequestsList';
+import { createStackNavigator } from '@react-navigation/stack';
+
+const Stack = createStackNavigator();
 
 const Chat = () => {
     return (
-        <ChatMain />
+        <Stack.Navigator>
+            <Stack.Screen name="Chat" component={ChatMain} />
+            <Stack.Screen name="User Profile" component={UserProfile} options={{ title: "" }} />
+            <Stack.Screen name="Friend Requests" component={FriendsRequestsList} />
+        </Stack.Navigator>
     )
 }
 

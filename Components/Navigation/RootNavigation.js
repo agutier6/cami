@@ -8,17 +8,14 @@ export default function RootNavigation() {
     const auth = getAuth();
 
     useEffect(() => {
-        let isSubscribed = true;
-        if (isSubscribed) {
-            onAuthStateChanged(auth, (authenticatedUser) => {
-                if (authenticatedUser) {
-                    setUser(authenticatedUser);
-                } else {
-                    setUser(undefined);
-                }
-            });
-        }
-        return () => isSubscribed = false;
+        const unsubscribe = onAuthStateChanged(auth, (authenticatedUser) => {
+            if (authenticatedUser) {
+                setUser(authenticatedUser);
+            } else {
+                setUser(undefined);
+            }
+        });
+        return () => unsubscribe();
     }, []);
 
     return user ? <UserStack /> : <AuthStack />;
