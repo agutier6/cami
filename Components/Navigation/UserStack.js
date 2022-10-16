@@ -80,8 +80,8 @@ export default function UserStack() {
                     tabBarLabelStyle: { paddingBottom: 10, fontSize: 12 },
                     tabBarActiveTintColor: theme.colors.primary.p500
                 })}>
-                <Tab.Screen name='Home' component={Home} options={{ headerShown: false }} />
                 <Tab.Screen name='Chats' component={Chat} options={{ headerShown: false }} />
+                {/* <Tab.Screen name='Home' component={Home} options={{ headerShown: false }} /> */}
                 <Tab.Screen name='Search' component={Search} options={{ headerShown: false }} />
                 <Tab.Screen name='User' component={User} options={{ headerShown: false }} />
             </Tab.Navigator>
