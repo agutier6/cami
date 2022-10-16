@@ -4,9 +4,9 @@ import { useWindowDimensions } from 'react-native';
 import { getAuth } from 'firebase/auth';
 import { compareTwoStrings } from 'string-similarity';
 import FriendEntry from './FriendEntry';
-import { getFriendsAsync, getFriendsDataAsync } from '../../services/friendRequests';
+import { getFriendsAsync, getFriendsDataAsync } from '../../services/friends';
 
-const FriendsList = ({ route }) => {
+const FriendsList = ({ route, navigation }) => {
     const [searchFriends, setSearchFriends] = useState(null);
     const [friends, setFriends] = useState(null);
     const [friendsData, setFriendsData] = useState([]);
@@ -75,7 +75,7 @@ const FriendsList = ({ route }) => {
         <Box alignItems="center">
             <VStack w={layout.width}>
                 <Input placeholder="Search" w={layout.width} onChangeText={(input) => handleSearch(input)} autoCapitalize='none' />
-                <FlatList keyboardShouldPersistTaps='handled' data={searchFriends ? searchFriends : friendsData} renderItem={({ item }) => <FriendEntry userData={item} />} keyExtractor={(item, index) => index.toString()} />
+                <FlatList keyboardShouldPersistTaps='handled' data={searchFriends ? searchFriends : Array.from(friendsData.values())} renderItem={({ item }) => <FriendEntry userData={item} action={() => navigation.push("User Profile", { userId: item.id })} />} keyExtractor={(item, index) => item.id} />
             </VStack>
         </Box>
     );

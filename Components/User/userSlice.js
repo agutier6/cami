@@ -1,6 +1,6 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit'
 import * as Location from 'expo-location';
-import { acceptFriendRequestAsync, cancelFriendRequestAsync, deleteFriendAsync, getFriendsAsync, rejectFriendRequestAsync, sendFriendRequestAsync } from '../../services/friendRequests';
+import { acceptFriendRequestAsync, cancelFriendRequestAsync, deleteFriendAsync, getFriendsAsync, rejectFriendRequestAsync, sendFriendRequestAsync } from '../../services/friends';
 
 export const subscribeLocationForeground = createAsyncThunk('user/subscribeLocationForeground', async (arg, { getState }) => {
     let { status } = await Location.getForegroundPermissionsAsync();

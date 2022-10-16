@@ -96,19 +96,22 @@ export const getFriendsAsync = async (status, userId) => {
 }
 
 export const getFriendsDataAsync = async (friends) => {
-    let friendsData = []
+    let friendsData = new Map();
     try {
         for (let i = 0; i < friends.length; i += 10) {
             let array = friends.slice(i, Math.max(friends.length, i + 10));
             if (array.length > 0) {
                 const friendsDataQuery = query(collection(firestore, 'users'), where('__name__', 'in', array))
                 const querySnapshot = await getDocs(friendsDataQuery);
-                friendsData = friendsData.concat(querySnapshot.docs.map(doc => ({
-                    id: doc.id,
-                    username: doc.data().username,
-                    displayName: doc.data().displayName,
-                    photoURL: doc.data().photoURL
-                })))
+                querySnapshot.docs.forEach(doc => {
+                    friendsData.set(doc.id, {
+                        id: doc.id,
+                        username: doc.data().username,
+                        displayName: doc.data().displayName,
+                        photoURL: doc.data().photoURL,
+                        selected: false
+                    })
+                })
             }
         }
         return friendsData;

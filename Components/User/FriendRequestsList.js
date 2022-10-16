@@ -44,7 +44,7 @@ const FriendsRequestsList = ({ navigation }) => {
     return (
         <Box alignItems="center">
             <VStack w={layout.width}>
-                <FlatList keyboardShouldPersistTaps='handled' data={friends} renderItem={({ item }) => <FriendRequest userId={item} />} keyExtractor={(item, index) => index.toString()} />
+                <FlatList keyboardShouldPersistTaps='handled' data={friends} renderItem={({ item }) => <FriendRequest userId={item} />} keyExtractor={(item, index) => item} />
             </VStack>
         </Box>
     );
