@@ -1,8 +1,6 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit'
 import * as Location from 'expo-location';
-import { doc, getFirestore, getDocs, runTransaction, query, collection, where } from 'firebase/firestore';
-
-const firestore = getFirestore();
+import { acceptFriendRequestAsync, cancelFriendRequestAsync, deleteFriendAsync, getFriendsAsync, rejectFriendRequestAsync, sendFriendRequestAsync } from '../../services/friendRequests';
 
 export const subscribeLocationForeground = createAsyncThunk('user/subscribeLocationForeground', async (arg, { getState }) => {
     let { status } = await Location.getForegroundPermissionsAsync();
@@ -17,117 +15,27 @@ export const subscribeLocationForeground = createAsyncThunk('user/subscribeLocat
 });
 
 export const sendFriendRequest = createAsyncThunk('user/sendFriendRequest', async ({ sender, recipient }) => {
-    // const firestore = getFirestore();
-    try {
-        await runTransaction(firestore, async (transaction) => {
-            const friendEntry = await transaction.get(doc(firestore, `users/${sender}/friends`, recipient));
-            if (friendEntry.exists()) {
-                throw "Already sent friend request!";
-            }
-            transaction.set(doc(firestore, `users/${sender}/friends`, recipient), { status: 'sent' });
-            transaction.set(doc(firestore, `users/${recipient}/friends`, sender), { status: 'received' });
-        })
-    } catch (error) {
-        console.error(error);
-    }
-    return;
+    await sendFriendRequestAsync(sender, recipient);
 });
 
 export const acceptFriendRequest = createAsyncThunk('user/acceptFriendRequest', async ({ sender, recipient }) => {
-    // const firestore = getFirestore();
-    try {
-        await runTransaction(firestore, async (transaction) => {
-            const friendEntry = await transaction.get(doc(firestore, `users/${recipient}/friends`, sender));
-            if (!friendEntry.exists() || friendEntry.data().status != 'received') {
-                throw "Friend request not found";
-            }
-            const recipientNumFriends = await transaction.get(doc(firestore, 'users', recipient));
-            const senderNumFriends = await transaction.get(doc(firestore, 'users', sender));
-            transaction.update(doc(firestore, `users/${recipient}/friends`, sender), { status: 'accepted' });
-            transaction.update(doc(firestore, `users/${sender}/friends`, recipient), { status: 'accepted' });
-            transaction.update(doc(firestore, 'users', recipient), { numFriends: recipientNumFriends.exists() && recipientNumFriends.data()["numFriends"] ? recipientNumFriends.data().numFriends + 1 : 1 });
-            transaction.update(doc(firestore, 'users', sender), { numFriends: senderNumFriends.exists() && senderNumFriends.data()["numFriends"] ? senderNumFriends.data().numFriends + 1 : 1 });
-        })
-    } catch (error) {
-        console.error(error);
-    }
+    await acceptFriendRequestAsync(sender, recipient);
 });
 
 export const rejectFriendRequest = createAsyncThunk('user/rejectFriendRequest', async ({ sender, recipient }) => {
-    // const firestore = getFirestore();
-    try {
-        await runTransaction(firestore, async (transaction) => {
-            const friendEntry = await transaction.get(doc(firestore, `users/${recipient}/friends`, sender));
-            if (!friendEntry.exists() || friendEntry.data().status != 'received') {
-                throw "Friend request not found";
-            }
-            transaction.delete(doc(firestore, `users/${sender}/friends`, recipient));
-            transaction.delete(doc(firestore, `users/${recipient}/friends`, sender));
-        })
-    } catch (error) {
-        console.error(error);
-    }
+    await rejectFriendRequestAsync(sender, recipient);
 });
 
 export const deleteFriend = createAsyncThunk('user/deleteFriend', async ({ sender, recipient }) => {
-    // const firestore = getFirestore();
-    try {
-        await runTransaction(firestore, async (transaction) => {
-            const friendEntry = await transaction.get(doc(firestore, `users/${recipient}/friends`, sender));
-            if (!friendEntry.exists()) {
-                throw "Could not find friend";
-            }
-            const recipientNumFriends = await transaction.get(doc(firestore, 'users', recipient));
-            const senderNumFriends = await transaction.get(doc(firestore, 'users', sender));
-            transaction.delete(doc(firestore, `users/${sender}/friends`, recipient));
-            transaction.delete(doc(firestore, `users/${recipient}/friends`, sender));
-            transaction.update(doc(firestore, 'users', recipient), { numFriends: recipientNumFriends.exists() && recipientNumFriends.data()["numFriends"] ? recipientNumFriends.data().numFriends - 1 : 0 });
-            transaction.update(doc(firestore, 'users', sender), { numFriends: senderNumFriends.exists() && senderNumFriends.data()["numFriends"] ? senderNumFriends.data().numFriends - 1 : 0 });
-        })
-    } catch (error) {
-        console.error(error);
-    }
+    await deleteFriendAsync(sender, recipient)
 })
 
 export const cancelFriendRequest = createAsyncThunk('user/cancelFriendRequest', async ({ sender, recipient }) => {
-    // const firestore = getFirestore();
-    try {
-        await runTransaction(firestore, async (transaction) => {
-            const friendEntry = await transaction.get(doc(firestore, `users/${recipient}/friends`, sender));
-            if (!friendEntry.exists() || friendEntry.data().status != 'received') {
-                throw "Could not find friend request";
-            }
-            transaction.delete(doc(firestore, `users/${sender}/friends`, recipient));
-            transaction.delete(doc(firestore, `users/${recipient}/friends`, sender));
-        })
-    } catch (error) {
-        console.error(error);
-    }
+    await cancelFriendRequestAsync(sender, recipient);
 })
 
 export const getFriends = createAsyncThunk('user/getFriends', async ({ status, userId }) => {
-    const friendsQuery = query(collection(firestore, `users/${userId}/friends`), where('status', '==', status))
-    const querySnapshot = await getDocs(friendsQuery);
-    return querySnapshot.docs.map(doc => doc.id);
-})
-
-export const getFriendsData = createAsyncThunk('user/getFriendsData', async (args, { getState }) => {
-    const state = getState();
-    let tempFriendsData = [];
-    for (let i = 0; i < state.user.friends.length; i += 10) {
-        let array = state.user.friends.slice(i, Math.max(state.user.friends.length, i + 10));
-        if (array.length > 0) {
-            const friendsDataQuery = query(collection(firestore, 'users'), where('__name__', 'in', array))
-            const querySnapshot = await getDocs(friendsDataQuery);
-            tempFriendsData = tempFriendsData.concat(querySnapshot.docs.map(doc => ({
-                id: doc.id,
-                username: doc.data().username,
-                displayName: doc.data().displayName,
-                photoURL: doc.data().photoURL
-            })))
-        }
-    }
-    return tempFriendsData;
+    return await getFriendsAsync(status, userId);
 })
 
 export const userReducer = createSlice({
@@ -136,22 +44,19 @@ export const userReducer = createSlice({
         location: null,
         locationStatus: 'idle',
         locationError: null,
-        friendRequestStatus: 'idle',
-        friendRequestError: null,
-        acceptRequestStatus: 'idle',
-        acceptRequestError: null,
-        deleteFriendStatus: 'idle',
-        deleteFriendError: null,
-        rejectRequestStatus: 'idle',
-        rejectRequestError: null,
-        cancelRequestStatus: 'idle',
-        cancelRequestError: null,
+        friendRequestStatus: {},
+        friendRequestError: {},
+        acceptRequestStatus: {},
+        acceptRequestError: {},
+        deleteFriendStatus: {},
+        deleteFriendError: {},
+        rejectRequestStatus: {},
+        rejectRequestError: {},
+        cancelRequestStatus: {},
+        cancelRequestError: {},
         getFriendsStatus: 'idle',
         getFriendsError: null,
-        getFriendsDataStatus: 'idle',
-        getFriendsDataError: null,
-        friends: null,
-        friendsData: []
+        friends: null
     },
     reducers: {
         clearLocation: (state) => {
@@ -160,10 +65,19 @@ export const userReducer = createSlice({
         clearFriendDetails: (state) => {
             state.getFriendsStatus = 'idle';
             state.getFriendsError = null;
-            state.getFriendsDataStatus = 'idle';
-            state.getFriendsDataError = null;
             state.friends = null;
-            state.friendsData = [];
+        },
+        clearRequestDetails: (state) => {
+            state.friendRequestStatus = {};
+            state.friendRequestError = {};
+            state.acceptRequestStatus = {};
+            state.acceptRequestError = {};
+            state.deleteFriendStatus = {};
+            state.deleteFriendError = {};
+            state.rejectRequestStatus = {};
+            state.rejectRequestError = {};
+            state.cancelRequestStatus = {};
+            state.cancelRequestError = {};
         }
     },
     extraReducers(builder) {
@@ -185,54 +99,54 @@ export const userReducer = createSlice({
                 state.locationStatus = 'failed';
             })
             .addCase(sendFriendRequest.pending, (state, action) => {
-                state.friendRequestStatus = 'loading';
+                state.friendRequestStatus[action.meta.requestId] = 'loading';
             })
             .addCase(sendFriendRequest.fulfilled, (state, action) => {
-                state.friendRequestStatus = 'succeeded';
+                state.friendRequestStatus[action.meta.requestId] = 'succeeded';
             })
             .addCase(sendFriendRequest.rejected, (state, action) => {
-                state.friendRequestError = action.error.message;
-                state.friendRequestStatus = 'failed';
+                state.friendRequestError[action.meta.requestId] = action.error.message;
+                state.friendRequestStatus[action.meta.requestId] = 'failed';
             })
             .addCase(acceptFriendRequest.pending, (state, action) => {
-                state.acceptRequestStatus = 'loading';
+                state.acceptRequestStatus[action.meta.requestId] = 'loading';
             })
             .addCase(acceptFriendRequest.fulfilled, (state, action) => {
-                state.acceptRequestStatus = 'succeeded';
+                state.acceptRequestStatus[action.meta.requestId] = 'succeeded';
             })
             .addCase(acceptFriendRequest.rejected, (state, action) => {
-                state.acceptRequestError = action.error.message;
-                state.acceptRequestStatus = 'failed';
+                state.acceptRequestError[action.meta.requestId] = action.error.message;
+                state.acceptRequestStatus[action.meta.requestId] = 'failed';
             })
             .addCase(rejectFriendRequest.pending, (state, action) => {
-                state.rejectRequestStatus = 'loading';
+                state.rejectRequestStatus[action.meta.requestId] = 'loading';
             })
             .addCase(rejectFriendRequest.fulfilled, (state, action) => {
-                state.rejectRequestStatus = 'succeeded';
+                state.rejectRequestStatus[action.meta.requestId] = 'succeeded';
             })
             .addCase(rejectFriendRequest.rejected, (state, action) => {
-                state.rejectRequestError = action.error.message;
-                state.rejectRequestStatus = 'failed';
+                state.rejectRequestError[action.meta.requestId] = action.error.message;
+                state.rejectRequestStatus[action.meta.requestId] = 'failed';
             })
             .addCase(deleteFriend.pending, (state, action) => {
-                state.deleteFriendStatus = 'loading';
+                state.deleteFriendStatus[action.meta.requestId] = 'loading';
             })
             .addCase(deleteFriend.fulfilled, (state, action) => {
-                state.deleteFriendStatus = 'succeeded';
+                state.deleteFriendStatus[action.meta.requestId] = 'succeeded';
             })
             .addCase(deleteFriend.rejected, (state, action) => {
-                state.deleteFriendError = action.error.message;
-                state.deleteFriendStatus = 'failed';
+                state.deleteFriendError[action.meta.requestId] = action.error.message;
+                state.deleteFriendStatus[action.meta.requestId] = 'failed';
             })
             .addCase(cancelFriendRequest.pending, (state, action) => {
-                state.cancelRequestStatus = 'loading';
+                state.cancelRequestStatus[action.meta.requestId] = 'loading';
             })
             .addCase(cancelFriendRequest.fulfilled, (state, action) => {
-                state.cancelRequestStatus = 'succeeded';
+                state.cancelRequestStatus[action.meta.requestId] = 'succeeded';
             })
             .addCase(cancelFriendRequest.rejected, (state, action) => {
-                state.cancelRequestError = action.error.message;
-                state.cancelRequestStatus = 'failed';
+                state.cancelRequestError[action.meta.requestId] = action.error.message;
+                state.cancelRequestStatus[action.meta.requestId] = 'failed';
             })
             .addCase(getFriends.pending, (state, action) => {
                 state.getFriendsStatus = 'loading';
@@ -245,23 +159,13 @@ export const userReducer = createSlice({
                 state.getFriendsError = action.error.message;
                 state.getFriendsStatus = 'failed';
             })
-            .addCase(getFriendsData.pending, (state, action) => {
-                state.getFriendsDataStatus = 'loading';
-            })
-            .addCase(getFriendsData.fulfilled, (state, action) => {
-                state.friendsData = action.payload;
-                state.getFriendsDataStatus = 'succeeded';
-            })
-            .addCase(getFriendsData.rejected, (state, action) => {
-                state.getFriendsDataError = action.error.message;
-                state.getFriendsDataStatus = 'failed';
-            })
     }
 })
 
 export const {
     clearLocation,
-    clearFriendDetails
+    clearFriendDetails,
+    clearRequestDetails
 } = userReducer.actions
 
 export const selectLocation = state => state.user.location
@@ -278,8 +182,6 @@ export const selectDeleteFriendStatus = state => state.user.deleteFriendStatus
 export const selectCancelFriendRequestStatus = state => state.user.cancelRequestStatus
 // export const selectCancelFriendRequestError = state => state.user.cancelRequestError
 export const selectGetFriendsStatus = state => state.user.getFriendsStatus
-export const selectGetFriendsDataStatus = state => state.user.getFriendsDataStatus
-export const selectFriendsData = state => state.user.friendsData
 export const selectFriends = state => state.user.friends
 
 export default userReducer.reducer
