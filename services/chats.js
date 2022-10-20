@@ -2,11 +2,13 @@ import { doc, getFirestore, addDoc, writeBatch, collection } from 'firebase/fire
 
 const firestore = getFirestore();
 
-export const createChatAsync = async (sender, recipients, name) => {
+export const createChatAsync = async (sender, recipients, name, photoURL) => {
     try {
         const chat = await addDoc(collection(firestore, 'chats'), {
             creator: sender,
-            users: sender.concat(recipients)
+            users: sender.concat(recipients),
+            name: name,
+            photoURL: photoURL
         });
         if (chat.exists()) {
             const batch = writeBatch(firestore);

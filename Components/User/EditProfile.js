@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Input, Icon, VStack, Button, FormControl, KeyboardAvoidingView, Text, Image, Box, HStack, Spacer } from 'native-base';
 import { getAuth, sendEmailVerification } from 'firebase/auth';
 import { Ionicons, Entypo } from '@expo/vector-icons';
-import { pickProfilePhoto, takeProfilePhoto } from "../../services/imagePicker";
+import { handleImagePicked, pickImage, takePicture } from "../../services/imagePicker";
 import { validateDescription, validateEmail, validateName } from "../../utils/validation";
 import { changeName, changeEmail, changeDescription } from '../../services/updateAccount';
 import { createOneButtonAlert } from '../Alerts/OneButtonPopUp';
@@ -19,6 +19,7 @@ function EditProfile({ route, navigation }) {
     const [emailErrorMessage, setEmailErrorMessage] = useState();
     const [descriptionErrorMessage, setDescriptionErrorMesssage] = useState();
     const layout = useWindowDimensions();
+    const [uploading, setUploading] = useState(false);
 
     useEffect(() => {
         let isSubscribed = true;
@@ -26,12 +27,12 @@ function EditProfile({ route, navigation }) {
             setName(auth.currentUser["displayName"] ? auth.currentUser.displayName : "");
             setEmail(auth.currentUser["email"] ? auth.currentUser.email : "");
             setPhotoURL(auth.currentUser["photoURL"] ? auth.currentUser.photoURL : "");
-
         }
         return () => isSubscribed = false;
     }, []);
 
     async function validateAndUpdate() {
+        setUploading(true);
         let nameValidated = validateName(name);
         let emailValidated = validateEmail(email);
         let descriptionValidated = validateDescription(description);
@@ -52,12 +53,17 @@ function EditProfile({ route, navigation }) {
                 let responseDescription = await changeDescription(auth.currentUser, description);
                 responseMessage += responseDescription.success ? '' : responseDescription.message;
             }
-            if (responseMessage.length > 0) {
-                createOneButtonAlert('Error', 'You Brittaed it. ' + responseMessage, 'Try Again');
-            } else {
-                navigation.goBack();
-            }
         }
+        if (photoURL != auth.currentUser.photoURL) {
+            let responseDescription = await handleImagePicked(auth.currentUser, photoURL);
+            responseMessage += responseDescription.success ? '' : responseDescription.message;
+        }
+        if (responseMessage.length > 0) {
+            createOneButtonAlert('Error', 'You Brittaed it. ' + responseMessage, 'Try Again');
+        } else {
+            navigation.goBack();
+        }
+        setUploading(false);
     };
 
     return (
@@ -71,16 +77,16 @@ function EditProfile({ route, navigation }) {
                 <HStack justifyContent="space-between">
                     <Button w={layout.width * 0.425} variant="outline"
                         onPress={async () => {
-                            let tempPhotoUrl = await pickProfilePhoto(auth.currentUser, auth.currentUser.uid);
-                            setPhotoURL(tempPhotoUrl ? tempPhotoUrl : auth.currentUser.photoURL);
+                            let pickerResult = await pickImage();
+                            setPhotoURL(!pickerResult.cancelled && pickerResult.uri ? pickerResult.uri : auth.currentUser.photoURL);
                         }}>
                         Choose Picture
                     </Button>
                     <Spacer />
                     <Button w={layout.width * 0.425} variant="outline"
                         onPress={async () => {
-                            let tempPhotoUrl = await takeProfilePhoto(auth.currentUser, auth.currentUser.uid);
-                            setPhotoURL(tempPhotoUrl ? tempPhotoUrl : auth.currentUser.photoURL);
+                            let pickerResult = await takePicture();
+                            setPhotoURL(!pickerResult.cancelled && pickerResult.uri ? pickerResult.uri : auth.currentUser.photoURL);
                         }}>
                         Take Picture
                     </Button>
@@ -135,6 +141,7 @@ function EditProfile({ route, navigation }) {
                         </VStack>
                     </Box>}
                 <Button w={layout.width * 0.9} variant="solid"
+                    isLoading={uploading}
                     onPress={() => validateAndUpdate()}>
                     Update
                 </Button>

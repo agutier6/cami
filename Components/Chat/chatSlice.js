@@ -1,8 +1,8 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit'
 import { createChatAsync } from '../../services/chats';
 
-export const createChat = createAsyncThunk('chat/createChat', async ({ sender, recipient }) => {
-    await createChatAsync(sender, recipient);
+export const createChat = createAsyncThunk('chat/createChat', async ({ sender, recipients }) => {
+    await createChatAsync(sender, recipients);
 });
 
 export const chatReducer = createSlice({

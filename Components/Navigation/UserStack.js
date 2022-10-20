@@ -8,7 +8,7 @@ import { getAuth } from 'firebase/auth';
 import InputUsername from '../User/InputUsername';
 import { Box, Spinner } from 'native-base';
 
-import Home from '../Screens/Home';
+import Explore from '../Screens/Explore';
 import Chat from '../Screens/Chat';
 import Search from '../Screens/Search';
 import User from '../Screens/User';
@@ -60,11 +60,11 @@ export default function UserStack() {
     return (
         <NavigationContainer>
             <Tab.Navigator
-                initialRouteName='Home'
+                initialRouteName='Chats'
                 screenOptions={({ route }) => ({
                     tabBarIcon: ({ focused, color, size }) => {
                         let iconName;
-                        if (route.name === 'Home') {
+                        if (route.name === 'Explore') {
                             iconName = focused ? 'home' : 'home-outline';
                         } else if (route.name === 'Chats') {
                             iconName = focused ? 'chatbubbles' : 'chatbubbles-outline';
@@ -81,7 +81,7 @@ export default function UserStack() {
                     tabBarActiveTintColor: theme.colors.primary.p500
                 })}>
                 <Tab.Screen name='Chats' component={Chat} options={{ headerShown: false }} />
-                {/* <Tab.Screen name='Home' component={Home} options={{ headerShown: false }} /> */}
+                <Tab.Screen name='Explore' component={Explore} options={{ headerShown: false }} />
                 <Tab.Screen name='Search' component={Search} options={{ headerShown: false }} />
                 <Tab.Screen name='User' component={User} options={{ headerShown: false }} />
             </Tab.Navigator>

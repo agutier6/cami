@@ -75,7 +75,7 @@ const FriendsList = ({ route, navigation }) => {
         <Box alignItems="center">
             <VStack w={layout.width}>
                 <Input placeholder="Search" w={layout.width} onChangeText={(input) => handleSearch(input)} autoCapitalize='none' />
-                <FlatList keyboardShouldPersistTaps='handled' data={searchFriends ? searchFriends : Array.from(friendsData.values())} renderItem={({ item }) => <FriendEntry userData={item} action={() => navigation.push("User Profile", { userId: item.id })} />} keyExtractor={(item, index) => item.id} />
+                <FlatList keyboardShouldPersistTaps='handled' data={searchFriends ? searchFriends : Array.from(friendsData.values())} renderItem={({ item }) => <FriendEntry userData={item} action={() => navigation.push("User Profile", { userId: item.id })} />} keyExtractor={(item, index) => item.id} width={layout.height * 0.06} />
             </VStack>
         </Box>
     );

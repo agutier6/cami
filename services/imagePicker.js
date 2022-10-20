@@ -3,44 +3,36 @@ import { getStorage, ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { updateProfile } from 'firebase/auth';
 import { updateDoc, doc, getFirestore } from 'firebase/firestore';
 
-async function handleImagePicked(pickerResult, uploadPath) {
+export async function handleImagePicked(user, photoURL) {
+    var response = {
+        success: false,
+        message: 'Error'
+    };
     try {
-        if (!pickerResult.cancelled) {
-            return await uploadImageAsync(pickerResult.uri, uploadPath);
-        }
+        updateProfilePhotoURL(user, await uploadImageAsync(photoURL, `users/${user.uid}/profilePic`));
+        response.success = true;
+        response.message = 'Bingpot';
     } catch (e) {
         console.error(e);
         alert('Upload failed, sorry');
+        response.message = e;
     }
+    return response;
 };
 
-export async function takePicture(uploadPath) {
-    let pickerResult = await ImagePicker.launchCameraAsync({
+export async function takePicture() {
+    return ImagePicker.launchCameraAsync({
         allowsEditing: true,
         aspect: [1, 1],
     });
-    return handleImagePicked(pickerResult, uploadPath);
 };
 
-export async function pickImage(uploadPath) {
-    let pickerResult = await ImagePicker.launchImageLibraryAsync({
+export async function pickImage() {
+    return await ImagePicker.launchImageLibraryAsync({
         allowsEditing: true,
         aspect: [1, 1],
     });
-    return handleImagePicked(pickerResult, uploadPath);
 };
-
-export async function pickProfilePhoto(user, userId) {
-    const photoURL = await pickImage(`users/${userId}/profilePic`);
-    updateProfilePhotoURL(user, photoURL);
-    return photoURL;
-}
-
-export async function takeProfilePhoto(user, userId) {
-    const photoURL = await takePicture(`users/${userId}/profilePic`);
-    updateProfilePhotoURL(user, photoURL);
-    return photoURL;
-}
 
 export async function updateProfilePhotoURL(user, photoURL) {
     const firestore = getFirestore();

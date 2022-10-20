@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from 'react';
-import { Box, VStack, FlatList, Spinner, Input, Avatar, Text } from 'native-base';
+import { Box, VStack, FlatList, Spinner, Input, Fab, Icon, Center } from 'native-base';
 import { useWindowDimensions } from 'react-native';
 import { getAuth } from 'firebase/auth';
 import { compareTwoStrings } from 'string-similarity';
 import FriendEntry from './../User/FriendEntry';
 import { getFriendsAsync, getFriendsDataAsync } from '../../services/friends';
 import ParticipantAvatar from './ParticipantAvatar';
+import { AntDesign, Entypo } from '@expo/vector-icons';
 
 const AddParticipants = ({ navigation }) => {
     const [searchFriends, setSearchFriends] = useState(null);
@@ -45,22 +46,6 @@ const AddParticipants = ({ navigation }) => {
 
     function handleSearch(input) {
         if (input.length > 0) {
-            // setSearchFriends(Array.from(friendsData.values()).filter(friend => {
-            //     let rating = compareTwoStrings(friend.username.toLowerCase(), input.toLowerCase()) + compareTwoStrings(friend.displayName.toLowerCase(), input.toLowerCase());
-            //     if (rating > 0.3) {
-            //         return {
-            //             ...friend,
-            //             rating: rating
-            //         }
-            //     }
-            // }).sort((a, b) => {
-            //     if (a.rating < b.rating) {
-            //         return 1;
-            //     } else if (a.rating > b.rating) {
-            //         return -1;
-            //     }
-            //     return 0;
-            // }))
             let searchMap = new Map();
             friendsData.forEach((value, key) => {
                 let rating = compareTwoStrings(value.username.toLowerCase(), input.toLowerCase()) + compareTwoStrings(value.displayName.toLowerCase(), input.toLowerCase());
@@ -104,28 +89,52 @@ const AddParticipants = ({ navigation }) => {
         );
     }
     return (
-        <Box alignItems="center">
-            <VStack w={layout.width}>
-                <Input placeholder="Search" w={layout.width} onChangeText={(input) => handleSearch(input)} autoCapitalize='none' />
-                {selectedFriends.length > 0 &&
-                    <FlatList h={layout.height * 0.1} horizontal keyboardShouldPersistTaps='handled' data={selectedFriends}
-                        renderItem={({ item }) => <ParticipantAvatar userData={item} action={() => handleSelect(item.id)} alignItems="center" justifyContent="center" mx={layout.width * 0.025} />}
-                        keyExtractor={(item, index) => item.id}
-                        borderBottomWidth="1" _dark={{
-                            borderColor: "muted.50"
-                        }} borderColor="muted.200" />}
-                <FlatList keyboardShouldPersistTaps='handled' data={searchFriends ? Array.from(searchFriends.values()).sort((a, b) => {
-                    if (a.rating < b.rating) {
-                        return 1;
-                    } else if (a.rating > b.rating) {
-                        return -1;
-                    }
-                    return 0;
-                }) : Array.from(friendsData.values())}
-                    renderItem={({ item }) => <FriendEntry userData={item} action={() => handleSelect(item.id)} />}
-                    keyExtractor={(item, index) => item.id} />
-            </VStack>
-        </Box>
+        <>
+            <Box alignItems="center">
+                <VStack w={layout.width}>
+                    <Input placeholder="Search" w={layout.width} onChangeText={(input) => handleSearch(input)} autoCapitalize='none' />
+                    {selectedFriends.length > 0 &&
+                        <FlatList h={layout.height * 0.1} horizontal keyboardShouldPersistTaps='handled' data={selectedFriends}
+                            renderItem={({ item }) => {
+                                return (
+                                    <ParticipantAvatar userData={item} action={() => handleSelect(item.id)} alignItems="center" justifyContent="center" badge mx={layout.width * 0.025} h={layout.height * 0.1} width={layout.height * 0.06}>
+                                        <Center backgroundColor="gray.300" borderRadius="full"
+                                            position="absolute" bottom={0} right={0} w={layout.height * 0.0225} h={layout.height * 0.0225}>
+                                            <Icon color="gray.500" as={Entypo} name="cross" size={layout.height * 0.015} />
+                                        </Center>
+                                    </ParticipantAvatar>)
+                            }}
+                            keyExtractor={(item, index) => item.id}
+                            borderBottomWidth="1" _dark={{
+                                borderColor: "muted.50"
+                            }} borderColor="muted.200" />}
+                    <FlatList keyboardShouldPersistTaps='handled' data={searchFriends ? Array.from(searchFriends.values()).sort((a, b) => {
+                        if (a.rating < b.rating) {
+                            return 1;
+                        } else if (a.rating > b.rating) {
+                            return -1;
+                        }
+                        return 0;
+                    }) : Array.from(friendsData.values())}
+                        renderItem={({ item }) => {
+                            return <FriendEntry userData={item} action={() => handleSelect(item.id)}>
+                                <Center backgroundColor="primary.500" borderRadius="full"
+                                    position="absolute" bottom={0} right={0} w={layout.height * 0.0225} h={layout.height * 0.0225}>
+                                    <Icon color="white" as={Entypo} name="check" size={layout.height * 0.015} />
+                                </Center>
+                            </FriendEntry>
+                        }}
+                        keyExtractor={(item, index) => item.id} />
+                </VStack>
+            </Box>
+            <Fab renderInPortal={false}
+                shadow={2} size="sm"
+                bottom={layout.height * 0.025}
+                icon={<Icon color="white" as={AntDesign} name="arrowright" size="sm" />}
+                onPress={() => {
+                    navigation.push("Add Subject", { groupParticipants: selectedFriends });
+                }} />
+        </>
     );
 }
 
