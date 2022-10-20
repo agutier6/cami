@@ -3,7 +3,7 @@ import { getStorage, ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { updateProfile } from 'firebase/auth';
 import { updateDoc, doc, getFirestore } from 'firebase/firestore';
 
-export async function handleImagePicked(user, photoURL) {
+export async function handleUserImagePicked(user, photoURL) {
     var response = {
         success: false,
         message: 'Error'
@@ -55,7 +55,7 @@ export async function updateProfilePhotoURL(user, photoURL) {
     }
 }
 
-async function uploadImageAsync(uri, uploadPath) {
+export async function uploadImageAsync(uri, uploadPath) {
     const blob = await new Promise((resolve, reject) => {
         const xhr = new XMLHttpRequest();
         xhr.onload = function () {
@@ -73,10 +73,8 @@ async function uploadImageAsync(uri, uploadPath) {
     const storage = getStorage();
     const storageRef = ref(storage, `${uploadPath}`);
 
-    const uploadTask = await uploadBytes(storageRef, blob).then(async (snapshot) => {
+    return await uploadBytes(storageRef, blob).then(async (snapshot) => {
         const url = await getDownloadURL(snapshot.ref);
         return url;
     });
-
-    return uploadTask;
 }

@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { Input, Icon, VStack, Button, FormControl, KeyboardAvoidingView, Text, Center, Box, HStack, Spacer } from 'native-base';
+import { Input, Icon, VStack, Button, FormControl, KeyboardAvoidingView, Text, Center, Box } from 'native-base';
 import { getAuth, sendEmailVerification } from 'firebase/auth';
 import { Ionicons, Entypo, Feather } from '@expo/vector-icons';
-import { handleImagePicked, pickImage, takePicture } from "../../services/imagePicker";
+import { handleUserImagePicked } from "../../services/imagePicker";
 import { validateDescription, validateEmail, validateName } from "../../utils/validation";
 import { changeName, changeEmail, changeDescription } from '../../services/updateAccount';
 import { createOneButtonAlert } from '../Alerts/OneButtonPopUp';
@@ -58,7 +58,7 @@ function EditProfile({ route, navigation }) {
             }
         }
         if (photoURL != auth.currentUser.photoURL) {
-            let responseDescription = await handleImagePicked(auth.currentUser, photoURL);
+            let responseDescription = await handleUserImagePicked(auth.currentUser, photoURL);
             responseMessage += responseDescription.success ? '' : responseDescription.message;
         }
         if (responseMessage.length > 0) {
@@ -78,28 +78,6 @@ function EditProfile({ route, navigation }) {
                         <Icon color="white" as={Feather} name="edit-2" size={layout.height * 0.02} />
                     </Center>
                 </UserAvatar>
-                {/* <Image size={layout.width * 0.35} alt="Profile Picture" borderRadius={100} source={{
-                    uri: photoURL
-                }} fallbackSource={{
-                    uri: "https://www.w3schools.com/css/img_lights.jpg"
-                }} />
-                <HStack justifyContent="space-between">
-                    <Button w={layout.width * 0.425} variant="outline"
-                        onPress={async () => {
-                            let pickerResult = await pickImage();
-                            setPhotoURL(!pickerResult.cancelled && pickerResult.uri ? pickerResult.uri : auth.currentUser.photoURL);
-                        }}>
-                        Choose Picture
-                    </Button>
-                    <Spacer />
-                    <Button w={layout.width * 0.425} variant="outline"
-                        onPress={async () => {
-                            let pickerResult = await takePicture();
-                            setPhotoURL(!pickerResult.cancelled && pickerResult.uri ? pickerResult.uri : auth.currentUser.photoURL);
-                        }}>
-                        Take Picture
-                    </Button>
-                </HStack> */}
                 <FormControl isInvalid={nameErrorMessage}>
                     <Text color="muted.400">Name</Text>
                     <Input w={layout.width * 0.9} InputLeftElement={<Icon as={<Ionicons name="person-outline" size={layout.width * 0.025} color="muted.700" />}

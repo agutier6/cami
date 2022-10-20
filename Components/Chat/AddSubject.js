@@ -1,17 +1,35 @@
 import { Entypo, Feather } from '@expo/vector-icons';
-import { Box, VStack, HStack, Avatar, Pressable, Icon, Center, Input, Text, Fab } from 'native-base'
+import { Box, VStack, HStack, Avatar, Pressable, Icon, Center, Input, Text, Fab, Modal, Spinner } from 'native-base'
 import React, { useState } from 'react'
 import { useWindowDimensions } from 'react-native';
 import ChangePicModal from '../Utils/ChangePicModal';
 import UserAvatar from './../User/UserAvatar';
-import { handleImagePicked, pickImage, takePicture } from "../../services/imagePicker";
-
+import { useDispatch, useSelector } from 'react-redux';
+import { createChat, selectCreateChatError, selectCreateChatStatus } from './chatSlice';
+import { getAuth } from 'firebase/auth';
+import { createOneButtonAlert } from '../Alerts/OneButtonPopUp';
+import { useEffect } from 'react';
 
 const AddSubject = ({ route, navigation }) => {
     const layout = useWindowDimensions();
     const [photoURL, setPhotoUrl] = useState(null);
     const [groupName, setGroupName] = useState(null);
     const [openModal, setOpenModal] = useState(false);
+    const auth = getAuth();
+    const dispatch = useDispatch();
+    const createChatStatus = useSelector(selectCreateChatStatus);
+    const createChatError = useSelector(selectCreateChatError);
+    const [requestId, setRequestId] = useState(null);
+
+    useEffect(() => {
+        let isSubscribed = true;
+        if (createChatStatus[requestId] === 'succeeded' && isSubscribed) {
+            navigation.navigate("Chat");
+        } else if (createChatStatus[requestId] === 'failed' && isSubscribed) {
+            createOneButtonAlert('Error', createChatError, 'Close');
+        }
+        return () => isSubscribed = false;
+    }, [createChatStatus])
 
     return (
         <>
@@ -38,19 +56,41 @@ const AddSubject = ({ route, navigation }) => {
                         <Text>Participants: {route.params.groupParticipants.length}</Text>
                         <Box flexDirection="row" flexWrap="wrap">
                             {route.params.groupParticipants.map(item => {
-                                return <UserAvatar photoURL={item.photoURL} text={item.displayName} mx={layout.width * 0.025} h={layout.height * 0.1} width={layout.height * 0.06} keyExtractor={(item, index) => item.id} />
+                                return <UserAvatar photoURL={item.photoURL} text={item.displayName} mx={layout.width * 0.025} h={layout.height * 0.1} width={layout.height * 0.06} key={item.id} />
                             })}
                         </Box>
                     </VStack>
                 </VStack>
+                {/* <Center>
+                    <Modal isOpen={createChatStatus === 'loading'}>
+                        <Modal.Content maxWidth={0.9 * layout.width}>
+                            <Modal.Body keyboardShouldPersistTaps={'handled'} horizontal={false}>
+                                <Center>
+                                    <Spinner size="lg" />
+                                </Center>
+                            </Modal.Body>
+                        </Modal.Content>
+                    </Modal>
+                </Center > */}
                 <ChangePicModal setOpenModal={setOpenModal} openModal={openModal} setPhotoURL={setPhotoUrl} />
             </Box>
             <Fab renderInPortal={false}
                 shadow={2} size="sm"
                 bottom={layout.height * 0.025}
                 icon={<Icon color="white" as={Entypo} name="check" size="sm" />}
+                isLoading={createChatStatus[requestId] === 'loading'}
                 onPress={() => {
-                    // navigation.push("Add Subject", { groupParticipants: selectedFriends });
+                    if (route.params.groupParticipants.length > 0 && groupName && groupName.length > 0) {
+                        let request = dispatch(createChat({
+                            sender: auth.currentUser.uid,
+                            recipients: route.params.groupParticipants.map(participant => participant.id),
+                            name: groupName,
+                            photoURI: photoURL
+                        }));
+                        setRequestId(request["requestId"]);
+                    } else {
+                        createOneButtonAlert('Error', 'Group must have a name', 'Close');
+                    }
                 }} />
         </>
     )
