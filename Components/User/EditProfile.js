@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { Input, Icon, VStack, Button, FormControl, KeyboardAvoidingView, Text, Image, Box, HStack, Spacer } from 'native-base';
+import { Input, Icon, VStack, Button, FormControl, KeyboardAvoidingView, Text, Center, Box, HStack, Spacer } from 'native-base';
 import { getAuth, sendEmailVerification } from 'firebase/auth';
-import { Ionicons, Entypo } from '@expo/vector-icons';
+import { Ionicons, Entypo, Feather } from '@expo/vector-icons';
 import { handleImagePicked, pickImage, takePicture } from "../../services/imagePicker";
 import { validateDescription, validateEmail, validateName } from "../../utils/validation";
 import { changeName, changeEmail, changeDescription } from '../../services/updateAccount';
 import { createOneButtonAlert } from '../Alerts/OneButtonPopUp';
 import { useWindowDimensions } from 'react-native';
+import ChangePicModal from '../Utils/ChangePicModal';
+import UserAvatar from './UserAvatar';
 
 function EditProfile({ route, navigation }) {
     const auth = getAuth();
@@ -20,6 +22,7 @@ function EditProfile({ route, navigation }) {
     const [descriptionErrorMessage, setDescriptionErrorMesssage] = useState();
     const layout = useWindowDimensions();
     const [uploading, setUploading] = useState(false);
+    const [openModal, setOpenModal] = useState(false);
 
     useEffect(() => {
         let isSubscribed = true;
@@ -69,7 +72,13 @@ function EditProfile({ route, navigation }) {
     return (
         <KeyboardAvoidingView alignItems="center" flex={1} justifyContent="center" mb={layout.height * 0.05}>
             <VStack space={layout.height * 0.01} mx={layout.width * 0.05} alignItems="center" my={layout.height * 0.05}>
-                <Image size={layout.width * 0.35} alt="Profile Picture" borderRadius={100} source={{
+                <UserAvatar photoURL={photoURL} action={() => setOpenModal(true)} width={layout.width * 0.35}>
+                    <Center backgroundColor="primary.500" borderRadius="full"
+                        position="absolute" bottom={0} right={0} w={layout.height * 0.05} h={layout.height * 0.05}>
+                        <Icon color="white" as={Feather} name="edit-2" size={layout.height * 0.02} />
+                    </Center>
+                </UserAvatar>
+                {/* <Image size={layout.width * 0.35} alt="Profile Picture" borderRadius={100} source={{
                     uri: photoURL
                 }} fallbackSource={{
                     uri: "https://www.w3schools.com/css/img_lights.jpg"
@@ -90,7 +99,7 @@ function EditProfile({ route, navigation }) {
                         }}>
                         Take Picture
                     </Button>
-                </HStack>
+                </HStack> */}
                 <FormControl isInvalid={nameErrorMessage}>
                     <Text color="muted.400">Name</Text>
                     <Input w={layout.width * 0.9} InputLeftElement={<Icon as={<Ionicons name="person-outline" size={layout.width * 0.025} color="muted.700" />}
@@ -146,6 +155,7 @@ function EditProfile({ route, navigation }) {
                     Update
                 </Button>
             </VStack>
+            <ChangePicModal setOpenModal={setOpenModal} openModal={openModal} setPhotoURL={setPhotoURL} />
         </KeyboardAvoidingView >
     );
 }

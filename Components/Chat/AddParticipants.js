@@ -5,7 +5,7 @@ import { getAuth } from 'firebase/auth';
 import { compareTwoStrings } from 'string-similarity';
 import FriendEntry from './../User/FriendEntry';
 import { getFriendsAsync, getFriendsDataAsync } from '../../services/friends';
-import ParticipantAvatar from './ParticipantAvatar';
+import UserAvatar from '../User/UserAvatar';
 import { AntDesign, Entypo } from '@expo/vector-icons';
 
 const AddParticipants = ({ navigation }) => {
@@ -97,12 +97,12 @@ const AddParticipants = ({ navigation }) => {
                         <FlatList h={layout.height * 0.1} horizontal keyboardShouldPersistTaps='handled' data={selectedFriends}
                             renderItem={({ item }) => {
                                 return (
-                                    <ParticipantAvatar userData={item} action={() => handleSelect(item.id)} alignItems="center" justifyContent="center" badge mx={layout.width * 0.025} h={layout.height * 0.1} width={layout.height * 0.06}>
+                                    <UserAvatar photoURL={item.photoURL} text={item.displayName} action={() => handleSelect(item.id)} mx={layout.width * 0.025} h={layout.height * 0.1} width={layout.height * 0.06}>
                                         <Center backgroundColor="gray.300" borderRadius="full"
                                             position="absolute" bottom={0} right={0} w={layout.height * 0.0225} h={layout.height * 0.0225}>
                                             <Icon color="gray.500" as={Entypo} name="cross" size={layout.height * 0.015} />
                                         </Center>
-                                    </ParticipantAvatar>)
+                                    </UserAvatar>)
                             }}
                             keyExtractor={(item, index) => item.id}
                             borderBottomWidth="1" _dark={{

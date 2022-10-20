@@ -12,7 +12,7 @@ import ReadMore from '@fawazahmed/react-native-read-more';
 import { TabView, SceneMap, TabBar } from 'react-native-tab-view';
 import { MaterialIcons, MaterialCommunityIcons, Feather, Entypo } from '@expo/vector-icons';
 import { theme } from '../../styles/theme';
-import PlaceOpen from '../PlaceUtils/PlaceOpen';
+import PlaceOpen from '../Utils/PlaceOpen';
 import { getApps } from 'react-native-map-link';
 import * as Clipboard from 'expo-clipboard';
 

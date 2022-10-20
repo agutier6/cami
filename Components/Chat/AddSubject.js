@@ -2,19 +2,23 @@ import { Entypo, Feather } from '@expo/vector-icons';
 import { Box, VStack, HStack, Avatar, Pressable, Icon, Center, Input, Text, Fab } from 'native-base'
 import React, { useState } from 'react'
 import { useWindowDimensions } from 'react-native';
-import ParticipantAvatar from './ParticipantAvatar';
+import ChangePicModal from '../Utils/ChangePicModal';
+import UserAvatar from './../User/UserAvatar';
+import { handleImagePicked, pickImage, takePicture } from "../../services/imagePicker";
+
 
 const AddSubject = ({ route, navigation }) => {
     const layout = useWindowDimensions();
     const [photoURL, setPhotoUrl] = useState(null);
     const [groupName, setGroupName] = useState(null);
+    const [openModal, setOpenModal] = useState(false);
 
     return (
         <>
             <Box mx={layout.width * 0.05} my={layout.height * 0.025}>
                 <VStack space={layout.height * 0.05}>
                     <HStack justifyContent="space-around" alignItems="center">
-                        <Pressable>
+                        <Pressable onPress={() => setOpenModal(true)}>
                             {photoURL && <Avatar size={layout.height * 0.1} source={{
                                 uri: photoURL
                             }} />}
@@ -34,11 +38,12 @@ const AddSubject = ({ route, navigation }) => {
                         <Text>Participants: {route.params.groupParticipants.length}</Text>
                         <Box flexDirection="row" flexWrap="wrap">
                             {route.params.groupParticipants.map(item => {
-                                return <ParticipantAvatar userData={item} alignItems="center" justifyContent="center" mx={layout.width * 0.025} h={layout.height * 0.1} width={layout.height * 0.06} />
+                                return <UserAvatar photoURL={item.photoURL} text={item.displayName} mx={layout.width * 0.025} h={layout.height * 0.1} width={layout.height * 0.06} keyExtractor={(item, index) => item.id} />
                             })}
                         </Box>
                     </VStack>
                 </VStack>
+                <ChangePicModal setOpenModal={setOpenModal} openModal={openModal} setPhotoURL={setPhotoUrl} />
             </Box>
             <Fab renderInPortal={false}
                 shadow={2} size="sm"
