@@ -1,4 +1,4 @@
-import { doc, getFirestore, addDoc, writeBatch, collection, deleteDoc, query, getDocs, where } from 'firebase/firestore';
+import { doc, getFirestore, addDoc, writeBatch, collection, deleteDoc, query, getDocs, where, limit, orderBy } from 'firebase/firestore';
 import { uploadImageAsync } from './imagePicker';
 import { getStorage, ref, deleteObject } from "firebase/storage";
 
@@ -45,23 +45,32 @@ export const createChatAsync = async (sender, recipients, name, photoURI) => {
 
 export const getChatDataAsync = async (chats) => {
     let chatData = [];
+    let chatDataWithRecentMessage = [];
     try {
         for (let i = 0; i < chats.length; i += 10) {
             let array = chats.slice(i, Math.max(chats.length, i + 10));
             if (array.length > 0) {
-                const chatDataQuery = query(collection(firestore, 'groupChats'), where('__name__', 'in', array))
-                const querySnapshot = await getDocs(chatDataQuery);
+                const querySnapshot = await getDocs(query(collection(firestore, 'groupChats'), where('__name__', 'in', array)));
                 querySnapshot.docs.forEach(doc => {
                     chatData.push({
                         id: doc.id,
                         name: doc.data()["name"],
                         photoURL: doc.data()["photoURL"]
-                    })
+                    });
                 })
             }
+        }
+        for (let i = 0; i < chatData.length; i++) {
+            const recentMessage = await getDocs(query(collection(firestore, `groupChats/${chatData[i]["id"]}/messages`), orderBy('createdAt', 'desc'), limit(1)));
+            chatDataWithRecentMessage.push({
+                id: chatData[i]["id"],
+                name: chatData[i]["name"],
+                photoURL: chatData[i]["photoURL"],
+                recentMessage: recentMessage.docs.length > 0 ? recentMessage.docs[0].data()["user"]["_id"] + ": " + recentMessage.docs[0].data()["text"] : null
+            });
         }
     } catch (error) {
         console.log(error)
     }
-    return chatData;
+    return chatDataWithRecentMessage;
 }

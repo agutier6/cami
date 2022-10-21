@@ -19,7 +19,6 @@ const ChatMain = ({ navigation }) => {
     const getChatDataStatus = useSelector(selectGetChatsStatus);
     const auth = getAuth();
     const [chats, setChats] = useState([]);
-    const [oldChats, setOldChats] = useState([]);
     const [requestId, setRequestId] = useState();
     const firestore = getFirestore();
     const [searchChats, setSearchChats] = useState(null);
@@ -46,14 +45,13 @@ const ChatMain = ({ navigation }) => {
         if (isSubscribed && chats && chats.length > 0) {
             let newChats = [];
             chats.forEach(chat => {
-                if (!oldChats.find(entry => entry === chat)) {
+                if (chatData[chat]) { } else {
                     newChats.push(chat);
                 }
             })
             if (newChats.length > 0) {
                 let request = dispatch(getChatData({ chats: newChats }));
                 setRequestId(request["requestId"]);
-                setOldChats(oldChats.concat(newChats));
             }
         }
         return () => isSubscribed = false;
@@ -100,7 +98,7 @@ const ChatMain = ({ navigation }) => {
                 <VStack w={layout.width}>
                     <Input placeholder="Search" w={layout.width} onChangeText={(input) => handleSearch(input)} autoCapitalize='none' />
                     <FlatList keyboardShouldPersistTaps='handled' data={searchChats ? searchChats : chats}
-                        renderItem={({ item }) => <ChatEntry chatData={chatData[item]} />}
+                        renderItem={({ item }) => <ChatEntry chatData={chatData[item]} action={() => navigation.push("Group Chat", { chatId: item, chatName: chatData[item]["name"], photoURL: chatData[item]["photoURL"] })} />}
                         keyExtractor={(item, index) => item} />
                 </VStack>
             </Box>

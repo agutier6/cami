@@ -34,7 +34,7 @@ const UserProfile = ({ route, navigation }) => {
             });
         }
         if (isSubscribed && userData) {
-            navigation.setOptions({ headerTitle: userData.username });
+            navigation.setOptions({ headerTitle: userData["username"] });
         }
         return () => isSubscribed = false;
     }, [navigation, userData]);

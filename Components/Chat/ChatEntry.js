@@ -38,6 +38,11 @@ export default function ChatEntry({ chatData, action, children, ...props }) {
                         }} color="coolGray.800" bold>
                             {chatData["name"]}
                         </Text>
+                        <Text _dark={{
+                            color: "warmGray.50"
+                        }} color="coolGray.800">
+                            {chatData["recentMessage"]}
+                        </Text>
                     </VStack>
                     <Spacer />
                 </HStack>

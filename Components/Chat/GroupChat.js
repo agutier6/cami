@@ -9,17 +9,31 @@ import {
     getFirestore
 } from 'firebase/firestore';
 import { getAuth } from 'firebase/auth';
+// import { AntDesignHeaderButtons } from '../Navigation/MyHeaderButtons.js';
+// import { Item } from 'react-navigation-header-buttons';
 
-const GroupChat = () => {
+const GroupChat = ({ route, navigation }) => {
     const [messages, setMessages] = useState();
     const auth = getAuth();
     const firestore = getFirestore();
 
-    useEffect(() => {
-        const collectionRef = collection(firestore, 'chats');
-        const q = query(collectionRef, orderBy('createdAt', 'desc'));
+    useLayoutEffect(() => {
+        let isSubscribed = true;
+        if (isSubscribed && route["params"]) {
+            navigation.setOptions({
+                headerTitle: route.params["chatName"],
+                // headerRight: () => (
+                //     <AntDesignHeaderButtons>
+                //         <Item title="user-menu" iconName="bars" onPress={() => signOut(auth)} />
+                //     </AntDesignHeaderButtons>
+                // )
+            });
+        }
+        return () => isSubscribed = false;
+    }, [navigation]);
 
-        const unsubscribe = onSnapshot(q, querySnapshot => {
+    useEffect(() => {
+        const unsubscribe = onSnapshot(query(collection(firestore, `groupChats/${route["params"]["chatId"]}/messages`), orderBy('createdAt', 'desc')), querySnapshot => {
             setMessages(
                 querySnapshot.docs.map(doc => ({
                     _id: doc.data()._id,
@@ -29,7 +43,6 @@ const GroupChat = () => {
                 }))
             );
         });
-
         return () => unsubscribe();
     }, []);
 
@@ -38,7 +51,7 @@ const GroupChat = () => {
             GiftedChat.append(previousMessages, messages)
         );
         const { _id, createdAt, text, user } = messages[0];
-        addDoc(collection(firestore, 'chats'), {
+        addDoc(collection(firestore, `groupChats/${route["params"]["chatId"]}/messages`), {
             _id,
             createdAt,
             text,
@@ -52,8 +65,8 @@ const GroupChat = () => {
             showAvatarForEveryMessage={true}
             onSend={messages => onSend(messages)}
             user={{
-                _id: auth?.currentUser?.email,
-                avatar: 'https://i.pravatar.cc/300'
+                _id: auth.currentUser.displayName,
+                avatar: auth.currentUser.photoURL
             }}
         />
     )

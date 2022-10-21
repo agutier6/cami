@@ -14,13 +14,13 @@ export const chatReducer = createSlice({
         createChatStatus: {},
         createChatError: {},
         getChatDataStatus: 'idle',
-        getChatDataError: null,
+        getChatDataError: {},
         chatData: {}
     },
     reducers: {
         clearChatData: (state) => {
             state.getChatDataStatus = 'idle';
-            state.getChatDataError = null;
+            state.getChatDataError = {};
             state.chatData = {};
         },
         clearCreateChat: (state) => {
@@ -47,7 +47,8 @@ export const chatReducer = createSlice({
                 action.payload.forEach((chat => {
                     state.chatData[chat["id"]] = {
                         name: chat["name"],
-                        photoURL: chat["photoURL"]
+                        photoURL: chat["photoURL"],
+                        recentMessage: chat["recentMessage"]
                     };
                 }))
                 state.getChatDataStatus[action.meta.requestId] = 'succeeded';
