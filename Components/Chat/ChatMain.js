@@ -11,6 +11,8 @@ import { collection, orderBy, query, onSnapshot, getFirestore } from 'firebase/f
 import ChatEntry from './ChatEntry.js';
 import { compareTwoStrings } from 'string-similarity';
 
+const MIN_SEARCH_RATING = 0.3;
+
 const ChatMain = ({ navigation }) => {
     const layout = useWindowDimensions();
     const toast = useToast();
@@ -35,7 +37,7 @@ const ChatMain = ({ navigation }) => {
 
     useEffect(() => {
         const unsubscribe = onSnapshot(query(collection(firestore, `users/${auth.currentUser.uid}/groupChats`), orderBy('lastModified', 'desc')), querySnapshot => {
-            setChats(querySnapshot.docs.map(doc => doc.id))
+            setChats(querySnapshot.docs.map(doc => { return { id: doc.id, recentMessage: doc.data()["recentMessage"], lastModified: doc.data()["lastModified"] } }));
         });
         return () => unsubscribe();
     }, []);
@@ -45,8 +47,8 @@ const ChatMain = ({ navigation }) => {
         if (isSubscribed && chats && chats.length > 0) {
             let newChats = [];
             chats.forEach(chat => {
-                if (chatData[chat]) { } else {
-                    newChats.push(chat);
+                if (chatData[chat.id]) { } else {
+                    newChats.push(chat.id);
                 }
             })
             if (newChats.length > 0) {
@@ -69,11 +71,13 @@ const ChatMain = ({ navigation }) => {
         if (input.length > 0) {
             let search = [];
             chats.forEach(chat => {
-                if (chatData[chat]) {
-                    let rating = compareTwoStrings(chatData[chat]["name"].toLowerCase(), input.toLowerCase())
-                    if (rating > 0.3) {
+                if (chatData[chat.id]) {
+                    let rating = compareTwoStrings(chatData[chat.id]["name"].toLowerCase(), input.toLowerCase())
+                    if (rating > MIN_SEARCH_RATING) {
                         search.push({
-                            id: chat,
+                            id: chat.id,
+                            recentMessage: chat["recentMessage"],
+                            lastModified: chat["lastModified"],
                             rating: rating
                         })
                     }
@@ -86,7 +90,7 @@ const ChatMain = ({ navigation }) => {
                     return -1;
                 }
                 return 0;
-            }).map(entry => entry.id));
+            }));
         } else {
             setSearchChats(null);
         }
@@ -98,8 +102,15 @@ const ChatMain = ({ navigation }) => {
                 <VStack w={layout.width}>
                     <Input placeholder="Search" w={layout.width} onChangeText={(input) => handleSearch(input)} autoCapitalize='none' />
                     <FlatList keyboardShouldPersistTaps='handled' data={searchChats ? searchChats : chats}
-                        renderItem={({ item }) => <ChatEntry chatData={chatData[item]} action={() => navigation.push("Group Chat", { chatId: item, chatName: chatData[item]["name"], photoURL: chatData[item]["photoURL"] })} />}
-                        keyExtractor={(item, index) => item} />
+                        renderItem={({ item }) => <ChatEntry chatData={chatData[item.id]}
+                            recentMessage={item["recentMessage"]}
+                            lastModified={item["lastModified"]}
+                            action={() => navigation.push("Group Chat", {
+                                chatId: item.id,
+                                chatName: chatData[item.id]["name"],
+                                photoURL: chatData[item.id]["photoURL"]
+                            })} />}
+                        keyExtractor={(item, index) => item.id} />
                 </VStack>
             </Box>
             <Fab renderInPortal={false}

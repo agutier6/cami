@@ -2,8 +2,9 @@ import React from 'react'
 import { Box, VStack, HStack, Avatar, Text, Pressable, Spacer, Center, Icon } from 'native-base';
 import { useWindowDimensions } from 'react-native';
 import { Feather } from '@expo/vector-icons';
+import { getChatEntryDate } from '../../utils/date';
 
-export default function ChatEntry({ chatData, action, children, ...props }) {
+export default function ChatEntry({ chatData, action, recentMessage, lastModified, children, ...props }) {
     const layout = useWindowDimensions();
 
     if (!chatData) {
@@ -32,16 +33,25 @@ export default function ChatEntry({ chatData, action, children, ...props }) {
                         </Center>}
                         {(chatData["selected"] === true) && children}
                     </Box>
-                    <VStack>
-                        <Text _dark={{
-                            color: "warmGray.50"
-                        }} color="coolGray.800" bold>
-                            {chatData["name"]}
-                        </Text>
+                    <VStack w={layout.width * 0.95 - layout.height * 0.075}>
+                        <HStack justifyContent="space-between" alignItems="center">
+                            <Text _dark={{
+                                color: "warmGray.50"
+                            }} color="coolGray.800" bold>
+                                {chatData["name"]}
+                            </Text>
+                            {lastModified &&
+                                <Text _dark={{
+                                    color: "warmGray.50"
+                                }} color="coolGray.800">
+                                    {getChatEntryDate(lastModified)}
+                                </Text>
+                            }
+                        </HStack>
                         <Text _dark={{
                             color: "warmGray.50"
                         }} color="coolGray.800">
-                            {chatData["recentMessage"]}
+                            {recentMessage}
                         </Text>
                     </VStack>
                     <Spacer />

@@ -45,7 +45,6 @@ export const createChatAsync = async (sender, recipients, name, photoURI) => {
 
 export const getChatDataAsync = async (chats) => {
     let chatData = [];
-    let chatDataWithRecentMessage = [];
     try {
         for (let i = 0; i < chats.length; i += 10) {
             let array = chats.slice(i, Math.max(chats.length, i + 10));
@@ -60,17 +59,8 @@ export const getChatDataAsync = async (chats) => {
                 })
             }
         }
-        for (let i = 0; i < chatData.length; i++) {
-            const recentMessage = await getDocs(query(collection(firestore, `groupChats/${chatData[i]["id"]}/messages`), orderBy('createdAt', 'desc'), limit(1)));
-            chatDataWithRecentMessage.push({
-                id: chatData[i]["id"],
-                name: chatData[i]["name"],
-                photoURL: chatData[i]["photoURL"],
-                recentMessage: recentMessage.docs.length > 0 ? recentMessage.docs[0].data()["user"]["_id"] + ": " + recentMessage.docs[0].data()["text"] : null
-            });
-        }
     } catch (error) {
         console.log(error)
     }
-    return chatDataWithRecentMessage;
+    return chatData;
 }

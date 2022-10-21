@@ -2,13 +2,13 @@ import React, { useEffect, useCallback, useState, useLayoutEffect } from 'react'
 import { GiftedChat } from 'react-native-gifted-chat';
 import {
     collection,
-    addDoc,
     orderBy,
     query,
     onSnapshot,
     getFirestore
 } from 'firebase/firestore';
 import { getAuth } from 'firebase/auth';
+import { sendGroupMessageAsync } from '../../services/messages';
 // import { AntDesignHeaderButtons } from '../Navigation/MyHeaderButtons.js';
 // import { Item } from 'react-navigation-header-buttons';
 
@@ -51,12 +51,7 @@ const GroupChat = ({ route, navigation }) => {
             GiftedChat.append(previousMessages, messages)
         );
         const { _id, createdAt, text, user } = messages[0];
-        addDoc(collection(firestore, `groupChats/${route["params"]["chatId"]}/messages`), {
-            _id,
-            createdAt,
-            text,
-            user
-        });
+        sendGroupMessageAsync(route["params"]["chatId"], { _id, createdAt, text, user })
     }, []);
 
     return (
@@ -65,7 +60,7 @@ const GroupChat = ({ route, navigation }) => {
             showAvatarForEveryMessage={true}
             onSend={messages => onSend(messages)}
             user={{
-                _id: auth.currentUser.displayName,
+                displayName: auth.currentUser.displayName,
                 avatar: auth.currentUser.photoURL
             }}
         />

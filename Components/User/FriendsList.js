@@ -6,10 +6,12 @@ import { compareTwoStrings } from 'string-similarity';
 import FriendEntry from './FriendEntry';
 import { getFriendsAsync, getFriendsDataAsync } from '../../services/friends';
 
+const MIN_SEARCH_RATING = 0.3;
+
 const FriendsList = ({ route, navigation }) => {
     const [searchFriends, setSearchFriends] = useState(null);
     const [friends, setFriends] = useState(null);
-    const [friendsData, setFriendsData] = useState([]);
+    const [friendsData, setFriendsData] = useState(new Map());
     const [userId] = useState(route ? route.params.userId : auth.currentUser.uid);
     const layout = useWindowDimensions();
     const auth = getAuth();
@@ -19,7 +21,7 @@ const FriendsList = ({ route, navigation }) => {
         if (isSubscribed) {
             setFriends(null);
             setSearchFriends(null);
-            setFriendsData([]);
+            setFriendsData(new Map());
             async function getFriends() {
                 if (isSubscribed) {
                     setFriends(await getFriendsAsync('accepted', userId));
@@ -43,22 +45,17 @@ const FriendsList = ({ route, navigation }) => {
 
     function handleSearch(input) {
         if (input.length > 0) {
-            setSearchFriends(friendsData.filter(friend => {
-                let rating = compareTwoStrings(friend.username.toLowerCase(), input.toLowerCase()) + compareTwoStrings(friend.displayName.toLowerCase(), input.toLowerCase());
-                if (rating > 0.3) {
-                    return {
-                        ...friend,
+            let searchMap = new Map();
+            friendsData.forEach((value, key) => {
+                let rating = compareTwoStrings(value.username.toLowerCase(), input.toLowerCase()) + compareTwoStrings(value.displayName.toLowerCase(), input.toLowerCase());
+                if (rating > MIN_SEARCH_RATING) {
+                    searchMap.set(key, {
+                        ...value,
                         rating: rating
-                    }
+                    })
                 }
-            }).sort((a, b) => {
-                if (a.rating < b.rating) {
-                    return 1;
-                } else if (a.rating > b.rating) {
-                    return -1;
-                }
-                return 0;
-            }))
+            })
+            setSearchFriends(searchMap);
         } else {
             setSearchFriends(null);
         }
@@ -75,8 +72,20 @@ const FriendsList = ({ route, navigation }) => {
         <Box alignItems="center">
             <VStack w={layout.width}>
                 <Input placeholder="Search" w={layout.width} onChangeText={(input) => handleSearch(input)} autoCapitalize='none' />
-                <FlatList keyboardShouldPersistTaps='handled' data={searchFriends ? searchFriends : Array.from(friendsData.values())}
+                {/* <FlatList keyboardShouldPersistTaps='handled' data={searchFriends ? searchFriends : Array.from(friendsData.values())}
                     renderItem={({ item }) => <FriendEntry userData={item} action={() => navigation.push("User Profile", { userId: item.id })} />}
+                    keyExtractor={(item, index) => item.id} /> */}
+                <FlatList keyboardShouldPersistTaps='handled' data={searchFriends ? Array.from(searchFriends.values()).sort((a, b) => {
+                    if (a.rating < b.rating) {
+                        return 1;
+                    } else if (a.rating > b.rating) {
+                        return -1;
+                    }
+                    return 0;
+                }) : Array.from(friendsData.values())}
+                    renderItem={({ item }) => {
+                        return <FriendEntry userData={item} action={() => navigation.push("User Profile", { userId: item.id })} />
+                    }}
                     keyExtractor={(item, index) => item.id} />
             </VStack>
         </Box>

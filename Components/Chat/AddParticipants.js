@@ -9,10 +9,12 @@ import UserAvatar from '../User/UserAvatar';
 import { AntDesign, Entypo } from '@expo/vector-icons';
 import { createOneButtonAlert } from '../Alerts/OneButtonPopUp';
 
+const MIN_SEARCH_RATING = 0.3;
+
 const AddParticipants = ({ navigation }) => {
     const [searchFriends, setSearchFriends] = useState(null);
     const [friends, setFriends] = useState(null);
-    const [friendsData, setFriendsData] = useState([]);
+    const [friendsData, setFriendsData] = useState(new Map());
     const [selectedFriends, setSelectedFriends] = useState([]);
     const layout = useWindowDimensions();
     const auth = getAuth();
@@ -22,7 +24,7 @@ const AddParticipants = ({ navigation }) => {
         if (isSubscribed) {
             setFriends(null);
             setSearchFriends(null);
-            setFriendsData([]);
+            setFriendsData(new Map());
             setSelectedFriends([]);
             async function getFriends() {
                 if (isSubscribed) {
@@ -50,7 +52,7 @@ const AddParticipants = ({ navigation }) => {
             let searchMap = new Map();
             friendsData.forEach((value, key) => {
                 let rating = compareTwoStrings(value.username.toLowerCase(), input.toLowerCase()) + compareTwoStrings(value.displayName.toLowerCase(), input.toLowerCase());
-                if (rating > 0.3) {
+                if (rating > MIN_SEARCH_RATING) {
                     searchMap.set(key, {
                         ...value,
                         rating: rating

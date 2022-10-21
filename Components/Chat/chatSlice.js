@@ -47,8 +47,7 @@ export const chatReducer = createSlice({
                 action.payload.forEach((chat => {
                     state.chatData[chat["id"]] = {
                         name: chat["name"],
-                        photoURL: chat["photoURL"],
-                        recentMessage: chat["recentMessage"]
+                        photoURL: chat["photoURL"]
                     };
                 }))
                 state.getChatDataStatus[action.meta.requestId] = 'succeeded';
