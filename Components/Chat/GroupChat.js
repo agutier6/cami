@@ -1,4 +1,4 @@
-import React, { useEffect, useCallback, useState, useLayoutEffect } from 'react';
+import React, { useEffect, useCallback, useState } from 'react';
 import { GiftedChat } from 'react-native-gifted-chat';
 import {
     collection,
@@ -9,28 +9,11 @@ import {
 } from 'firebase/firestore';
 import { getAuth } from 'firebase/auth';
 import { sendGroupMessageAsync } from '../../services/messages';
-// import { AntDesignHeaderButtons } from '../Navigation/MyHeaderButtons.js';
-// import { Item } from 'react-navigation-header-buttons';
 
 const GroupChat = ({ route, navigation }) => {
     const [messages, setMessages] = useState();
     const auth = getAuth();
     const firestore = getFirestore();
-
-    useLayoutEffect(() => {
-        let isSubscribed = true;
-        if (isSubscribed && route["params"]) {
-            navigation.setOptions({
-                headerTitle: route.params["chatName"],
-                // headerRight: () => (
-                //     <AntDesignHeaderButtons>
-                //         <Item title="user-menu" iconName="bars" onPress={() => signOut(auth)} />
-                //     </AntDesignHeaderButtons>
-                // )
-            });
-        }
-        return () => isSubscribed = false;
-    }, [navigation]);
 
     useEffect(() => {
         const unsubscribe = onSnapshot(query(collection(firestore, `groupChats/${route["params"]["chatId"]}/messages`), orderBy('createdAt', 'desc')), querySnapshot => {

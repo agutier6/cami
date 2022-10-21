@@ -87,7 +87,8 @@ const AddSubject = ({ route, navigation }) => {
                             sender: auth.currentUser.uid,
                             recipients: route.params.groupParticipants.map(participant => participant.id),
                             name: groupName,
-                            photoURI: photoURL
+                            photoURI: photoURL,
+                            creatorName: auth.currentUser.displayName
                         }));
                         setRequestId(request["requestId"]);
                     } else {

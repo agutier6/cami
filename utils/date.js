@@ -23,3 +23,7 @@ export function getChatEntryDate(lastModified) {
     }
     return date.getDate() + " " + mon[date.getMonth()] + " " + date.getFullYear();
 }
+export function getDateFromTimestamp(timestamp) {
+    const date = new Date(timestamp);
+    return date.getDate() + " " + mon[date.getMonth()] + " " + date.getFullYear();
+}

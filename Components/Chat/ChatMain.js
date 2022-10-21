@@ -1,6 +1,4 @@
-import React, { useEffect, useState, useLayoutEffect } from 'react';
-import { AntDesignHeaderButtons } from '../Navigation/MyHeaderButtons.js';
-import { Item } from 'react-navigation-header-buttons';
+import React, { useEffect, useState } from 'react';
 import { Fab, Icon, useToast, Box, VStack, FlatList, Spinner, Input } from 'native-base';
 import { AntDesign } from '@expo/vector-icons';
 import { useWindowDimensions } from 'react-native';
@@ -9,9 +7,7 @@ import { getChatData, selectChatData, selectGetChatsStatus } from './chatSlice.j
 import { getAuth } from 'firebase/auth';
 import { collection, orderBy, query, onSnapshot, getFirestore } from 'firebase/firestore';
 import ChatEntry from './ChatEntry.js';
-import { compareTwoStrings } from 'string-similarity';
-
-const MIN_SEARCH_RATING = 0.3;
+import { handleChatSearch } from '../../utils/search.js';
 
 const ChatMain = ({ navigation }) => {
     const layout = useWindowDimensions();
@@ -24,16 +20,6 @@ const ChatMain = ({ navigation }) => {
     const [requestId, setRequestId] = useState();
     const firestore = getFirestore();
     const [searchChats, setSearchChats] = useState(null);
-
-    useLayoutEffect(() => {
-        navigation.setOptions({
-            headerRight: () => (
-                <AntDesignHeaderButtons>
-                    <Item title="friend-requests" iconName="adduser" onPress={() => navigation.navigate("Friend Requests")} />
-                </AntDesignHeaderButtons>
-            ),
-        });
-    }, [navigation]);
 
     useEffect(() => {
         const unsubscribe = onSnapshot(query(collection(firestore, `users/${auth.currentUser.uid}/groupChats`), orderBy('lastModified', 'desc')), querySnapshot => {
@@ -67,40 +53,11 @@ const ChatMain = ({ navigation }) => {
         );
     }
 
-    function handleSearch(input) {
-        if (input.length > 0) {
-            let search = [];
-            chats.forEach(chat => {
-                if (chatData[chat.id]) {
-                    let rating = compareTwoStrings(chatData[chat.id]["name"].toLowerCase(), input.toLowerCase())
-                    if (rating > MIN_SEARCH_RATING) {
-                        search.push({
-                            id: chat.id,
-                            recentMessage: chat["recentMessage"],
-                            lastModified: chat["lastModified"],
-                            rating: rating
-                        })
-                    }
-                }
-            })
-            setSearchChats(search.sort((a, b) => {
-                if (a.rating < b.rating) {
-                    return 1;
-                } else if (a.rating > b.rating) {
-                    return -1;
-                }
-                return 0;
-            }));
-        } else {
-            setSearchChats(null);
-        }
-    }
-
     return (
         <>
             <Box alignItems="center">
                 <VStack w={layout.width}>
-                    <Input placeholder="Search" w={layout.width} onChangeText={(input) => handleSearch(input)} autoCapitalize='none' />
+                    <Input placeholder="Search" w={layout.width} onChangeText={(input) => handleChatSearch(input, setSearchChats, chatData, chats)} autoCapitalize='none' />
                     <FlatList keyboardShouldPersistTaps='handled' data={searchChats ? searchChats : chats}
                         renderItem={({ item }) => <ChatEntry chatData={chatData[item.id]}
                             recentMessage={item["recentMessage"]}

@@ -5,8 +5,7 @@ import { getAuth } from 'firebase/auth';
 import { compareTwoStrings } from 'string-similarity';
 import FriendEntry from './FriendEntry';
 import { getFriendsAsync, getFriendsDataAsync } from '../../services/friends';
-
-const MIN_SEARCH_RATING = 0.3;
+import { handleUserSearch } from '../../utils/search';
 
 const FriendsList = ({ route, navigation }) => {
     const [searchFriends, setSearchFriends] = useState(null);
@@ -43,24 +42,6 @@ const FriendsList = ({ route, navigation }) => {
         return () => isSubscribed = false;
     }, [friends]);
 
-    function handleSearch(input) {
-        if (input.length > 0) {
-            let searchMap = new Map();
-            friendsData.forEach((value, key) => {
-                let rating = compareTwoStrings(value.username.toLowerCase(), input.toLowerCase()) + compareTwoStrings(value.displayName.toLowerCase(), input.toLowerCase());
-                if (rating > MIN_SEARCH_RATING) {
-                    searchMap.set(key, {
-                        ...value,
-                        rating: rating
-                    })
-                }
-            })
-            setSearchFriends(searchMap);
-        } else {
-            setSearchFriends(null);
-        }
-    }
-
     if (!friends) {
         return (
             <Box flex={1} alignItems="center" justifyContent="center">
@@ -71,10 +52,7 @@ const FriendsList = ({ route, navigation }) => {
     return (
         <Box alignItems="center">
             <VStack w={layout.width}>
-                <Input placeholder="Search" w={layout.width} onChangeText={(input) => handleSearch(input)} autoCapitalize='none' />
-                {/* <FlatList keyboardShouldPersistTaps='handled' data={searchFriends ? searchFriends : Array.from(friendsData.values())}
-                    renderItem={({ item }) => <FriendEntry userData={item} action={() => navigation.push("User Profile", { userId: item.id })} />}
-                    keyExtractor={(item, index) => item.id} /> */}
+                <Input placeholder="Search" w={layout.width} onChangeText={(input) => handleUserSearch(input, setSearchFriends, friendsData)} autoCapitalize='none' />
                 <FlatList keyboardShouldPersistTaps='handled' data={searchFriends ? Array.from(searchFriends.values()).sort((a, b) => {
                     if (a.rating < b.rating) {
                         return 1;

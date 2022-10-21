@@ -1,8 +1,8 @@
 import React from 'react'
-import { Box, VStack, HStack, Avatar, Text, Pressable, Spacer, Center, Icon } from 'native-base';
+import { Box, VStack, HStack, Text, Pressable, Spacer } from 'native-base';
 import { useWindowDimensions } from 'react-native';
-import { Feather } from '@expo/vector-icons';
 import { getChatEntryDate } from '../../utils/date';
+import GroupIcon from '../Utils/GroupIcon'
 
 export default function ChatEntry({ chatData, action, recentMessage, lastModified, children, ...props }) {
     const layout = useWindowDimensions();
@@ -25,12 +25,7 @@ export default function ChatEntry({ chatData, action, recentMessage, lastModifie
             }}>
                 <HStack space={[2, 3]} justifyContent="space-between" >
                     <Box>
-                        {chatData["photoURL"] && <Avatar size={layout.height * 0.06} source={{
-                            uri: chatData["photoURL"]
-                        }} />}
-                        {!chatData["photoURL"] && <Center size={layout.height * 0.06} borderRadius="full" backgroundColor="gray.300">
-                            <Icon color="gray.400" as={Feather} name="users" size={layout.height * 0.03} />
-                        </Center>}
+                        <GroupIcon size={layout.height * 0.06} photoURL={chatData["photoURL"]} />
                         {(chatData["selected"] === true) && children}
                     </Box>
                     <VStack w={layout.width * 0.95 - layout.height * 0.075}>

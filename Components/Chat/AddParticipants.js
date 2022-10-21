@@ -2,14 +2,12 @@ import React, { useEffect, useState } from 'react';
 import { Box, VStack, FlatList, Spinner, Input, Fab, Icon, Center } from 'native-base';
 import { useWindowDimensions } from 'react-native';
 import { getAuth } from 'firebase/auth';
-import { compareTwoStrings } from 'string-similarity';
 import FriendEntry from './../User/FriendEntry';
 import { getFriendsAsync, getFriendsDataAsync } from '../../services/friends';
 import UserAvatar from '../User/UserAvatar';
 import { AntDesign, Entypo } from '@expo/vector-icons';
 import { createOneButtonAlert } from '../Alerts/OneButtonPopUp';
-
-const MIN_SEARCH_RATING = 0.3;
+import { handleUserSearch } from '../../utils/search';
 
 const AddParticipants = ({ navigation }) => {
     const [searchFriends, setSearchFriends] = useState(null);
@@ -47,24 +45,6 @@ const AddParticipants = ({ navigation }) => {
         return () => isSubscribed = false;
     }, [friends]);
 
-    function handleSearch(input) {
-        if (input.length > 0) {
-            let searchMap = new Map();
-            friendsData.forEach((value, key) => {
-                let rating = compareTwoStrings(value.username.toLowerCase(), input.toLowerCase()) + compareTwoStrings(value.displayName.toLowerCase(), input.toLowerCase());
-                if (rating > MIN_SEARCH_RATING) {
-                    searchMap.set(key, {
-                        ...value,
-                        rating: rating
-                    })
-                }
-            })
-            setSearchFriends(searchMap);
-        } else {
-            setSearchFriends(null);
-        }
-    }
-
     function handleSelect(id) {
         let temp = friendsData.get(id);
         if (temp["selected"] === true) {
@@ -95,7 +75,7 @@ const AddParticipants = ({ navigation }) => {
         <>
             <Box alignItems="center">
                 <VStack w={layout.width}>
-                    <Input placeholder="Search" w={layout.width} onChangeText={(input) => handleSearch(input)} autoCapitalize='none' />
+                    <Input placeholder="Search" w={layout.width} onChangeText={(input) => handleUserSearch(input, setSearchFriends, friendsData)} autoCapitalize='none' />
                     {selectedFriends.length > 0 &&
                         <FlatList h={layout.height * 0.1} horizontal keyboardShouldPersistTaps='handled' data={selectedFriends}
                             renderItem={({ item }) => {

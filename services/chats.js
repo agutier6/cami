@@ -1,14 +1,15 @@
-import { doc, getFirestore, addDoc, writeBatch, collection, deleteDoc, query, getDocs, where, limit, orderBy } from 'firebase/firestore';
+import { doc, getFirestore, addDoc, writeBatch, collection, deleteDoc, query, getDocs, where, getDoc } from 'firebase/firestore';
 import { uploadImageAsync } from './imagePicker';
 import { getStorage, ref, deleteObject } from "firebase/storage";
 
 const firestore = getFirestore();
 const storage = getStorage();
 
-export const createChatAsync = async (sender, recipients, name, photoURI) => {
+export const createChatAsync = async (sender, recipients, name, photoURI, creatorName) => {
     try {
         const chat = await addDoc(collection(firestore, 'groupChats'), {
             creator: sender,
+            creatorName: creatorName,
             name: name,
             creationTimestamp: Date.now()
         });
@@ -63,4 +64,23 @@ export const getChatDataAsync = async (chats) => {
         console.log(error)
     }
     return chatData;
+}
+
+export const getGroupParticipantsAsync = async (groupId) => {
+    try {
+        const users = await getDocs(query(collection(firestore, `groupChats/${groupId}/users`)));
+        return users.docs.map(user => user.id);
+    } catch (error) {
+        console.error(error);
+    }
+}
+
+export const getChatInfoAsync = async (groupId) => {
+    try {
+        const info = await getDoc(doc(firestore, `groupChats/${groupId}`));
+        return info.exists() ? info.data() : null;
+    } catch (error) {
+        console.error(error);
+    }
+    return null;
 }
