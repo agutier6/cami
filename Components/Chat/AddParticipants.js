@@ -7,6 +7,7 @@ import FriendEntry from './../User/FriendEntry';
 import { getFriendsAsync, getFriendsDataAsync } from '../../services/friends';
 import UserAvatar from '../User/UserAvatar';
 import { AntDesign, Entypo } from '@expo/vector-icons';
+import { createOneButtonAlert } from '../Alerts/OneButtonPopUp';
 
 const AddParticipants = ({ navigation }) => {
     const [searchFriends, setSearchFriends] = useState(null);
@@ -132,7 +133,12 @@ const AddParticipants = ({ navigation }) => {
                 bottom={layout.height * 0.025}
                 icon={<Icon color="white" as={AntDesign} name="arrowright" size="sm" />}
                 onPress={() => {
-                    navigation.push("Add Subject", { groupParticipants: selectedFriends });
+                    if (selectedFriends.length > 0) {
+                        navigation.push("Add Subject", { groupParticipants: selectedFriends });
+                    } else {
+                        createOneButtonAlert("Error", "Select some friends to continue.", "Close")
+                    }
+
                 }} />
         </>
     );

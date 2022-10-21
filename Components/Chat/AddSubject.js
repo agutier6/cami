@@ -9,6 +9,8 @@ import { createChat, selectCreateChatError, selectCreateChatStatus } from './cha
 import { getAuth } from 'firebase/auth';
 import { createOneButtonAlert } from '../Alerts/OneButtonPopUp';
 import { useEffect } from 'react';
+import { AntDesignHeaderButtons } from '../Navigation/MyHeaderButtons.js';
+import { Item } from 'react-navigation-header-buttons';
 
 const AddSubject = ({ route, navigation }) => {
     const layout = useWindowDimensions();
@@ -23,6 +25,16 @@ const AddSubject = ({ route, navigation }) => {
 
     useEffect(() => {
         let isSubscribed = true;
+        if (isSubscribed) {
+            navigation.setOptions({
+                headerLeft: () => (
+                    <AntDesignHeaderButtons>
+                        <Item title="go-back" iconName="arrowleft" onPress={() => navigation.goBack()} color="black" disabled={createChatStatus[requestId] === 'loading'} />
+                    </AntDesignHeaderButtons>
+                ),
+                gestureEnabled: createChatStatus[requestId] === 'loading'
+            });
+        }
         if (createChatStatus[requestId] === 'succeeded' && isSubscribed) {
             navigation.navigate("Chat");
         } else if (createChatStatus[requestId] === 'failed' && isSubscribed) {
@@ -36,7 +48,7 @@ const AddSubject = ({ route, navigation }) => {
             <Box mx={layout.width * 0.05} my={layout.height * 0.025}>
                 <VStack space={layout.height * 0.05}>
                     <HStack justifyContent="space-around" alignItems="center">
-                        <Pressable onPress={() => setOpenModal(true)}>
+                        <Pressable isDisabled={createChatStatus[requestId] === 'loading'} onPress={() => setOpenModal(true)}>
                             {photoURL && <Avatar size={layout.height * 0.1} source={{
                                 uri: photoURL
                             }} />}
@@ -50,6 +62,7 @@ const AddSubject = ({ route, navigation }) => {
                         </Pressable>
                         <Input w={layout.width * 0.6} h={layout.height * 0.05} placeholder={"Group name"}
                             value={groupName} onChangeText={name => setGroupName(name)}
+                            isDisabled={createChatStatus[requestId] === 'loading'}
                             borderColor="muted.300" />
                     </HStack>
                     <VStack space={layout.height * 0.015}>
@@ -61,17 +74,6 @@ const AddSubject = ({ route, navigation }) => {
                         </Box>
                     </VStack>
                 </VStack>
-                {/* <Center>
-                    <Modal isOpen={createChatStatus === 'loading'}>
-                        <Modal.Content maxWidth={0.9 * layout.width}>
-                            <Modal.Body keyboardShouldPersistTaps={'handled'} horizontal={false}>
-                                <Center>
-                                    <Spinner size="lg" />
-                                </Center>
-                            </Modal.Body>
-                        </Modal.Content>
-                    </Modal>
-                </Center > */}
                 <ChangePicModal setOpenModal={setOpenModal} openModal={openModal} setPhotoURL={setPhotoUrl} />
             </Box>
             <Fab renderInPortal={false}

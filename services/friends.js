@@ -106,9 +106,9 @@ export const getFriendsDataAsync = async (friends) => {
                 querySnapshot.docs.forEach(doc => {
                     friendsData.set(doc.id, {
                         id: doc.id,
-                        username: doc.data().username,
-                        displayName: doc.data().displayName,
-                        photoURL: doc.data().photoURL,
+                        username: doc.data()["username"],
+                        displayName: doc.data()["displayName"],
+                        photoURL: doc.data()["photoURL"],
                         selected: false
                     })
                 })

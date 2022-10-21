@@ -1,12 +1,12 @@
 import React from 'react'
 import { Box, VStack, HStack, Avatar, Text, Pressable, Spacer, Center, Icon } from 'native-base';
 import { useWindowDimensions } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { Feather } from '@expo/vector-icons';
 
-export default function FriendEntry({ userData, action, children, ...props }) {
+export default function ChatEntry({ chatData, action, children, ...props }) {
     const layout = useWindowDimensions();
 
-    if (!userData) {
+    if (!chatData) {
         return <Box h={0}>
         </Box>
     }
@@ -24,24 +24,19 @@ export default function FriendEntry({ userData, action, children, ...props }) {
             }}>
                 <HStack space={[2, 3]} justifyContent="space-between" >
                     <Box>
-                        {userData["photoURL"] && <Avatar size={layout.height * 0.06} source={{
-                            uri: userData.photoURL
+                        {chatData["photoURL"] && <Avatar size={layout.height * 0.06} source={{
+                            uri: chatData["photoURL"]
                         }} />}
-                        {!userData["photoURL"] && <Center size={layout.height * 0.06} borderRadius="full" backgroundColor="gray.300">
-                            <Icon color="gray.400" as={Ionicons} name="person" size={layout.height * 0.03} />
+                        {!chatData["photoURL"] && <Center size={layout.height * 0.06} borderRadius="full" backgroundColor="gray.300">
+                            <Icon color="gray.400" as={Feather} name="users" size={layout.height * 0.03} />
                         </Center>}
-                        {(userData["selected"] === true) && children}
+                        {(chatData["selected"] === true) && children}
                     </Box>
                     <VStack>
                         <Text _dark={{
                             color: "warmGray.50"
                         }} color="coolGray.800" bold>
-                            {userData["username"]}
-                        </Text>
-                        <Text color="coolGray.600" _dark={{
-                            color: "warmGray.200"
-                        }}>
-                            {userData["displayName"]}
+                            {chatData["name"]}
                         </Text>
                     </VStack>
                     <Spacer />
