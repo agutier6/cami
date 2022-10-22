@@ -1,16 +1,20 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit'
-import { createChatAsync, getChatDataAsync, getGroupParticipantsAsync } from '../../services/chats';
+import { createChatAsync, getChatDataAsync, editGroupDescriptionAsync, changeGroupPhotoAsync } from '../../services/chats';
 
-export const createChat = createAsyncThunk('chat/createChat', async ({ sender, recipients, name, photoURI, creatorName }) => {
-    await createChatAsync(sender, recipients, name, photoURI, creatorName);
+export const createChat = createAsyncThunk('chat/createChat', async ({ sender, recipients, name, photoURI, creatorName, description }) => {
+    await createChatAsync(sender, recipients, name, photoURI, creatorName, description);
 });
 
 export const getChatData = createAsyncThunk('chat/getChatData', async ({ chats }) => {
     return await getChatDataAsync(chats);
 });
 
-export const getGroupParticipants = createAsyncThunk('chat/getGroupParticipants', async ({ chatId }) => {
-    return await getGroupParticipantsAsync(chatId);
+export const editGroupDescription = createAsyncThunk('chat/editGroupDescription', async ({ chatId, description }) => {
+    await editGroupDescriptionAsync(chatId, description);
+});
+
+export const changeGroupPhoto = createAsyncThunk('chat/changeGroupPhoto', async ({ chatId, photoURI }) => {
+    await changeGroupPhotoAsync(chatId, photoURI);
 });
 
 export const chatReducer = createSlice({
@@ -21,9 +25,12 @@ export const chatReducer = createSlice({
         getChatDataStatus: 'idle',
         getChatDataError: {},
         chatData: {},
-        groupParticipants: [],
-        getGroupParticipantsStatus: {},
-        getGroupParticipantsError: {}
+        editGroupDescriptionStatus: {},
+        editGroupDescriptionError: {},
+        groupDescription: {},
+        changeGroupPhotoStatus: {},
+        changeGroupPhotoError: {},
+        groupPhoto: {}
     },
     reducers: {
         clearChatData: (state) => {
@@ -35,10 +42,13 @@ export const chatReducer = createSlice({
             state.createChatStatus = {};
             state.createChatError = {};
         },
-        clearGroupParticipants: (state) => {
-            state.groupParticipants = [];
-            state.getGroupParticipantsStatus = {};
-            state.getGroupParticipantsError = {};
+        clearGroupInfo: (state) => {
+            state.editGroupDescriptionStatus = {};
+            state.editGroupDescriptionError = {};
+            state.groupDescription = {};
+            state.changeGroupPhotoStatus = {};
+            state.changeGroupPhotoError = {};
+            state.groupPhoto = {};
         }
     },
     extraReducers(builder) {
@@ -69,16 +79,27 @@ export const chatReducer = createSlice({
                 state.getChatDataError[action.meta.requestId] = action.error.message;
                 state.getChatDataStatus[action.meta.requestId] = 'failed';
             })
-            .addCase(getGroupParticipants.pending, (state, action) => {
-                state.getGroupParticipantsStatus[action.meta.requestId] = 'loading';
+            .addCase(editGroupDescription.pending, (state, action) => {
+                state.editGroupDescriptionStatus[action.meta.requestId] = 'loading';
             })
-            .addCase(getGroupParticipants.fulfilled, (state, action) => {
-                state.groupParticipants = action.payload;
-                state.getGroupParticipantsStatus[action.meta.requestId] = 'succeeded';
+            .addCase(editGroupDescription.fulfilled, (state, action) => {
+                state.groupDescription[action.meta.arg.chatId] = action.meta.arg.description;
+                state.editGroupDescriptionStatus[action.meta.requestId] = 'succeeded';
             })
-            .addCase(getGroupParticipants.rejected, (state, action) => {
-                state.getGroupParticipantsError[action.meta.requestId] = action.error.message;
-                state.getGroupParticipantsStatus[action.meta.requestId] = 'failed';
+            .addCase(editGroupDescription.rejected, (state, action) => {
+                state.editGroupDescriptionError[action.meta.requestId] = action.error.message;
+                state.editGroupDescriptionStatus[action.meta.requestId] = 'failed';
+            })
+            .addCase(changeGroupPhoto.pending, (state, action) => {
+                state.changeGroupPhotoStatus[action.meta.requestId] = 'loading';
+            })
+            .addCase(changeGroupPhoto.fulfilled, (state, action) => {
+                state.groupPhoto[action.meta.arg.chatId] = action.meta.arg.photoURI;
+                state.changeGroupPhotoStatus[action.meta.requestId] = 'succeeded';
+            })
+            .addCase(changeGroupPhoto.rejected, (state, action) => {
+                state.changeGroupPhotoError[action.meta.requestId] = action.error.message;
+                state.changeGroupPhotoStatus[action.meta.requestId] = 'failed';
             })
     }
 })
@@ -86,7 +107,7 @@ export const chatReducer = createSlice({
 export const {
     clearChatData,
     clearCreateChat,
-    clearGroupParticipants
+    clearGroupInfo
 } = chatReducer.actions
 
 export const selectCreateChatStatus = state => state.chat.createChatStatus
@@ -94,8 +115,11 @@ export const selectCreateChatError = state => state.chat.createChatError
 export const selectGetChatsStatus = state => state.chat.getChatDataStatus
 export const selectGetChatDataError = state => state.chat.getChatDataError
 export const selectChatData = state => state.chat.chatData
-export const selectGroupParticipants = state => state.chat.groupParticipants
-export const selectGetGroupParticipantsStatus = state => state.chat.getGroupParticipantsStatus
-export const selectGetGroupParticipantsError = state => state.chat.getGroupParticipantsError
+export const selectEditGroupDescriptionStatus = state => state.chat.editGroupDescriptionStatus
+export const selectEditGroupDescriptionError = state => state.chat.editGroupDescriptionError
+export const selectGroupDescription = state => state.chat.groupDescription
+export const selectChangeGroupPhotoStatus = state => state.chat.changeGroupPhotoStatus
+export const selectChangeGroupPhotoError = state => state.chat.changeGroupPhotoError
+export const selectGroupPhoto = state => state.chat.groupPhoto
 
 export default chatReducer.reducer

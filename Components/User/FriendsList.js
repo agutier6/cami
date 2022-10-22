@@ -2,7 +2,6 @@ import React, { useEffect, useState } from 'react';
 import { Box, VStack, FlatList, Spinner, Input } from 'native-base';
 import { useWindowDimensions } from 'react-native';
 import { getAuth } from 'firebase/auth';
-import { compareTwoStrings } from 'string-similarity';
 import FriendEntry from './FriendEntry';
 import { getFriendsAsync, getFriendsDataAsync } from '../../services/friends';
 import { handleUserSearch } from '../../utils/search';

@@ -81,8 +81,18 @@ export async function validateUsername(username) {
 }
 
 export function validateDescription(desc) {
-    if (desc.length > 100 || !desc) {
-        return 'Description must be 100 characters or less.';
+    if (desc.length > 500) {
+        return 'Description must be 500 characters or less.';
+    } else {
+        return false;
+    }
+}
+
+export function validateGroupName(desc) {
+    if (!desc) {
+        return "Group must have a name";
+    } else if (desc.length > 50) {
+        return 'Group Name must be 50 characters or less.';
     } else {
         return false;
     }

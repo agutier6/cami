@@ -4,7 +4,7 @@ import { useWindowDimensions } from 'react-native';
 import { getChatEntryDate } from '../../utils/date';
 import GroupIcon from '../Utils/GroupIcon'
 
-export default function ChatEntry({ chatData, action, recentMessage, lastModified, children, ...props }) {
+export default function ChatEntry({ chatData, action, recentMessage, lastModified, children, photoURL, ...props }) {
     const layout = useWindowDimensions();
 
     if (!chatData) {
@@ -25,7 +25,7 @@ export default function ChatEntry({ chatData, action, recentMessage, lastModifie
             }}>
                 <HStack space={[2, 3]} justifyContent="space-between" >
                     <Box>
-                        <GroupIcon size={layout.height * 0.06} photoURL={chatData["photoURL"]} />
+                        <GroupIcon size={layout.height * 0.06} photoURL={photoURL} />
                         {(chatData["selected"] === true) && children}
                     </Box>
                     <VStack w={layout.width * 0.95 - layout.height * 0.075}>

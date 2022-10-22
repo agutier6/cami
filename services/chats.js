@@ -1,17 +1,18 @@
-import { doc, getFirestore, addDoc, writeBatch, collection, deleteDoc, query, getDocs, where, getDoc } from 'firebase/firestore';
+import { doc, getFirestore, addDoc, writeBatch, collection, deleteDoc, query, getDocs, where, getDoc, updateDoc } from 'firebase/firestore';
 import { uploadImageAsync } from './imagePicker';
 import { getStorage, ref, deleteObject } from "firebase/storage";
 
 const firestore = getFirestore();
 const storage = getStorage();
 
-export const createChatAsync = async (sender, recipients, name, photoURI, creatorName) => {
+export const createChatAsync = async (sender, recipients, name, photoURI, creatorName, description) => {
     try {
         const chat = await addDoc(collection(firestore, 'groupChats'), {
             creator: sender,
             creatorName: creatorName,
             name: name,
-            creationTimestamp: Date.now()
+            creationTimestamp: Date.now(),
+            description: description
         });
         if (chat["id"]) {
             try {
@@ -83,4 +84,25 @@ export const getChatInfoAsync = async (groupId) => {
         console.error(error);
     }
     return null;
+}
+
+export const editGroupDescriptionAsync = async (groupId, desc) => {
+    try {
+        await updateDoc(doc(firestore, `groupChats/${groupId}`), {
+            description: desc
+        })
+    } catch (error) {
+        console.error(error);
+    }
+}
+
+export const changeGroupPhotoAsync = async (groupId, photoURI) => {
+    try {
+        const photoURL = await uploadImageAsync(photoURI, `groupChats/${groupId}/groupPic`);
+        updateDoc(doc(firestore, 'groupChats', groupId), {
+            photoURL: photoURL
+        })
+    } catch (error) {
+        console.error(error);
+    }
 }

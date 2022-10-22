@@ -52,7 +52,7 @@ function EditProfile({ route, navigation }) {
                 let responseEmail = await changeEmail(auth.currentUser, email);
                 responseMessage += responseEmail.success ? '' : responseEmail.message;
             }
-            if (description != oldDescription) {
+            if (description != oldDescription && description) {
                 let responseDescription = await changeDescription(auth.currentUser, description);
                 responseMessage += responseDescription.success ? '' : responseDescription.message;
             }
