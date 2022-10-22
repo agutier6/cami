@@ -51,7 +51,7 @@ const FriendsList = ({ route, navigation }) => {
     return (
         <Box alignItems="center">
             <VStack w={layout.width}>
-                <Input placeholder="Search" w={layout.width} onChangeText={(input) => handleUserSearch(input, setSearchFriends, friendsData)} autoCapitalize='none' />
+                <Input placeholder="Search" w={layout.width} onChangeText={(input) => handleUserSearch(input, setSearchFriends, friendsData)} autoCapitalize='none' blurOnSubmit />
                 <FlatList keyboardShouldPersistTaps='handled' data={searchFriends ? Array.from(searchFriends.values()).sort((a, b) => {
                     if (a.rating < b.rating) {
                         return 1;

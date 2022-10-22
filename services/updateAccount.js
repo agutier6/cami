@@ -1,8 +1,9 @@
 import { updateProfile, updateEmail } from 'firebase/auth';
 import { updateDoc, doc, getFirestore } from 'firebase/firestore';
 
+const firestore = getFirestore();
+
 export async function changeName(user, name) {
-    const firestore = getFirestore();
     var response = {
         success: true,
         message: 'Bingpot'
@@ -57,7 +58,6 @@ export async function changeEmail(user, email) {
 }
 
 export async function changeDescription(user, desc) {
-    const firestore = getFirestore();
     var response = {
         success: true,
         message: 'Bingpot'

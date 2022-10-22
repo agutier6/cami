@@ -1,10 +1,8 @@
 import React, { useEffect, useLayoutEffect } from 'react';
 import ExploreSwipe from './ExploreSwipe';
 import { useNavigation } from '@react-navigation/native';
-import { AntDesignHeaderButtons } from '../Navigation/MyHeaderButtons.js';
-import { Item } from 'react-navigation-header-buttons';
 import { useDispatch, useSelector } from 'react-redux';
-import { openFilterModal, setExploreLocation, setMapMarker, setRegion } from './exploreSlice';
+import { setExploreLocation, setMapMarker, setRegion } from './exploreSlice';
 import { ExploreFilterModal } from './ExploreFilterModal';
 import CardSkeleton from './CardSkeleton';
 import PlaceDetailsModal from './PlaceDetailsModal';
@@ -41,16 +39,6 @@ function ExploreMain() {
         }
         return () => isSubscribed = false;
     }, [locationStatus, dispatch,])
-
-    useLayoutEffect(() => {
-        navigation.setOptions({
-            headerRight: () => (
-                <AntDesignHeaderButtons>
-                    <Item title="explore-filter" iconName="filter" onPress={() => dispatch(openFilterModal())} />
-                </AntDesignHeaderButtons>
-            ),
-        });
-    }, [navigation]);
 
     if (locationStatus === 'succeeded') {
         return (<>

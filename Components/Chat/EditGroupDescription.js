@@ -40,8 +40,12 @@ const EditGroupDescription = ({ route, navigation }) => {
                     onPress={() => {
                         let descriptionErrorMessage = newDescription ? validateDescription(newDescription) : "Type a description";
                         if (!descriptionErrorMessage) {
-                            let request = dispatch(editGroupDescription({ chatId: route.params["chatId"], description: newDescription }));
-                            setRequestId(request["requestId"]);
+                            if (newDescription != route.params["description"]) {
+                                let request = dispatch(editGroupDescription({ chatId: route.params["chatId"], description: newDescription }));
+                                setRequestId(request["requestId"]);
+                            } else {
+                                navigation.goBack();
+                            }
                         } else {
                             createOneButtonAlert('Error', descriptionErrorMessage, 'Close');
                         }

@@ -106,3 +106,13 @@ export const changeGroupPhotoAsync = async (groupId, photoURI) => {
         console.error(error);
     }
 }
+
+export const changeGroupNameAsync = async (groupId, name) => {
+    try {
+        await updateDoc(doc(firestore, `groupChats/${groupId}`), {
+            name: name
+        })
+    } catch (error) {
+        console.error(error);
+    }
+}

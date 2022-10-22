@@ -1,26 +1,28 @@
 import React, { useEffect, useState } from 'react';
-import { Fab, Icon, useToast, Box, VStack, FlatList, Spinner, Input } from 'native-base';
+import { Fab, Icon, Box, VStack, FlatList, Input } from 'native-base';
 import { AntDesign } from '@expo/vector-icons';
 import { useWindowDimensions } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
-import { clearChatData, clearGroupInfo, getChatData, selectChatData, selectGetChatsStatus, selectGroupPhoto } from './chatSlice.js';
+import { clearChatData, clearGroupInfo, getChatData, selectChatData, selectGetChatDataError, selectGroupName, selectGroupPhoto } from './chatSlice.js';
 import { getAuth } from 'firebase/auth';
 import { collection, orderBy, query, onSnapshot, getFirestore } from 'firebase/firestore';
 import ChatEntry from './ChatEntry.js';
 import { handleChatSearch } from '../../utils/search.js';
+import { createOneButtonAlert } from '../Alerts/OneButtonPopUp.js';
 
 const ChatMain = ({ navigation }) => {
     const layout = useWindowDimensions();
-    const toast = useToast();
     const dispatch = useDispatch()
     const chatData = useSelector(selectChatData)
-    const getChatDataStatus = useSelector(selectGetChatsStatus);
+    // const getChatDataStatus = useSelector(selectGetChatsStatus);
+    const getChatDataError = useSelector(selectGetChatDataError)
     const auth = getAuth();
     const [chats, setChats] = useState([]);
     const [requestId, setRequestId] = useState();
     const firestore = getFirestore();
     const [searchChats, setSearchChats] = useState(null);
     const groupPhoto = useSelector(selectGroupPhoto);
+    const groupName = useSelector(selectGroupName);
 
     useEffect(() => {
         let isSubscribed = true;
@@ -55,13 +57,24 @@ const ChatMain = ({ navigation }) => {
         return () => isSubscribed = false;
     }, [chats, chatData])
 
+    useEffect(() => {
+        let isSubscribed = true;
+        if (isSubscribed && getChatDataError[requestId]) {
+            createOneButtonAlert('Error', getChatDataError[requestId], 'Close');
+        }
+        return () => isSubscribed = false;
+    }, getChatDataError[requestId])
+
     return (
         <>
             <Box alignItems="center">
                 <VStack w={layout.width}>
                     <Input placeholder="Search" w={layout.width} onChangeText={(input) => handleChatSearch(input, setSearchChats, chatData, chats)} autoCapitalize='none' />
                     <FlatList keyboardShouldPersistTaps='handled' data={searchChats ? searchChats : chats} h="100%"
-                        renderItem={({ item }) => <ChatEntry chatData={chatData[item.id]} photoURL={groupPhoto[item.id] ? groupPhoto[item.id] : chatData[item.id] ? chatData[item.id]["photoURL"] : null}
+                        renderItem={({ item }) => <ChatEntry
+                            selected={chatData[item.id] ? chatData[item.id]["selected"] : false}
+                            name={groupName[item.id] ? groupName[item.id] : chatData[item.id] ? chatData[item.id]["name"] : null}
+                            photoURL={groupPhoto[item.id] ? groupPhoto[item.id] : chatData[item.id] ? chatData[item.id]["photoURL"] : null}
                             recentMessage={item["recentMessage"]}
                             lastModified={item["lastModified"]}
                             action={() => navigation.push("Group Chat", {

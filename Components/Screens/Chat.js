@@ -8,6 +8,7 @@ import GroupChat from '../Chat/GroupChat';
 import ChatInfo from '../Chat/ChatInfo';
 import FriendsList from '../User/FriendsList';
 import EditGroupDescription from '../Chat/EditGroupDescription';
+import EditGroupName from '../Chat/EditGroupName';
 import { createStackNavigator } from '@react-navigation/stack';
 import { AntDesignHeaderButtons } from '../Navigation/MyHeaderButtons.js';
 import { Item } from 'react-navigation-header-buttons';
@@ -15,12 +16,13 @@ import GroupIcon from '../Utils/GroupIcon'
 import { HStack, Heading, Pressable } from 'native-base';
 import { useWindowDimensions } from 'react-native';
 import { useSelector } from 'react-redux';
-import { selectGroupPhoto } from '../Chat/chatSlice';
+import { selectGroupName, selectGroupPhoto } from '../Chat/chatSlice';
 
 const Stack = createStackNavigator();
 
 const Chat = () => {
     const groupPhoto = useSelector(selectGroupPhoto);
+    const groupName = useSelector(selectGroupName);
     const layout = useWindowDimensions();
     return (
         <Stack.Navigator>
@@ -44,13 +46,14 @@ const Chat = () => {
                 })}>
                     <HStack alignItems="center" space={layout.width * 0.025}>
                         <GroupIcon size={layout.height * 0.05} photoURL={groupPhoto[route.params["chatId"]] ? groupPhoto[route.params["chatId"]] : route.params["photoURL"]} />
-                        <Heading color="muted.700" size="md">{route.params["chatName"]}</Heading>
+                        <Heading color="muted.700" size="md">{groupName[route.params["chatId"]] ? groupName[route.params["chatId"]] : route.params["chatName"]}</Heading>
                     </HStack>
                 </Pressable>
             })} />
             <Stack.Screen name="Chat Info" component={ChatInfo} options={{ title: "" }} />
             <Stack.Screen name="Friends" component={FriendsList} />
             <Stack.Screen name="Group Description" component={EditGroupDescription} />
+            <Stack.Screen name="Group Name" component={EditGroupName} />
         </Stack.Navigator>
     )
 }

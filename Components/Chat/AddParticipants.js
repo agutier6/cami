@@ -75,7 +75,7 @@ const AddParticipants = ({ navigation }) => {
         <>
             <Box alignItems="center">
                 <VStack w={layout.width}>
-                    <Input placeholder="Search" w={layout.width} onChangeText={(input) => handleUserSearch(input, setSearchFriends, friendsData)} autoCapitalize='none' />
+                    <Input placeholder="Search" w={layout.width} onChangeText={(input) => handleUserSearch(input, setSearchFriends, friendsData)} autoCapitalize='none' blurOnSubmit />
                     {selectedFriends.length > 0 &&
                         <FlatList h={layout.height * 0.1} horizontal keyboardShouldPersistTaps='handled' data={selectedFriends}
                             renderItem={({ item }) => {
