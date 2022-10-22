@@ -45,6 +45,17 @@ export const createChatAsync = async (sender, recipients, name, photoURI, creato
     }
 }
 
+export const leaveGroupChatAsync = async (chatId, userId) => {
+    try {
+        const batch = writeBatch(firestore);
+        batch.delete(doc(firestore, `groupChats/${chatId}/users`, userId));
+        batch.delete(doc(firestore, `users/${userId}/groupChats`, chatId));
+        batch.commit();
+    } catch (error) {
+        console.error(error);
+    }
+}
+
 export const getChatDataAsync = async (chats) => {
     let chatData = [];
     try {

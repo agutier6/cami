@@ -13,7 +13,6 @@ function ExploreMain() {
     const location = useSelector(selectLocation);
     const locationStatus = useSelector(selectLocationStatus);
     const locationError = useSelector(selectLocationError);
-    const navigation = useNavigation();
     const dispatch = useDispatch();
 
     useEffect(() => {

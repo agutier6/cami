@@ -1,5 +1,5 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit'
-import { createChatAsync, getChatDataAsync, editGroupDescriptionAsync, changeGroupPhotoAsync, changeGroupNameAsync } from '../../services/chats';
+import { createChatAsync, getChatDataAsync, editGroupDescriptionAsync, changeGroupPhotoAsync, changeGroupNameAsync, leaveGroupChatAsync } from '../../services/chats';
 
 export const createChat = createAsyncThunk('chat/createChat', async ({ sender, recipients, name, photoURI, creatorName, description }) => {
     await createChatAsync(sender, recipients, name, photoURI, creatorName, description);
@@ -21,11 +21,17 @@ export const changeGroupName = createAsyncThunk('chat/changeGroupName', async ({
     await changeGroupNameAsync(chatId, name);
 });
 
+export const leaveGroupChat = createAsyncThunk('chat/leaveGroupChat', async ({ chatId, userId }) => {
+    await leaveGroupChatAsync(chatId, userId);
+});
+
 export const chatReducer = createSlice({
     name: 'chat',
     initialState: {
         createChatStatus: {},
         createChatError: {},
+        leaveGroupChatStatus: {},
+        leaveGroupChatError: {},
         getChatDataStatus: {},
         getChatDataError: {},
         chatData: {},
@@ -48,6 +54,10 @@ export const chatReducer = createSlice({
         clearCreateChat: (state) => {
             state.createChatStatus = {};
             state.createChatError = {};
+        },
+        clearLeaveChat: (state) => {
+            state.leaveGroupChatStatus = {};
+            state.leaveGroupChatError = {};
         },
         clearGroupInfo: (state) => {
             state.editGroupDescriptionStatus = {};
@@ -72,6 +82,16 @@ export const chatReducer = createSlice({
             .addCase(createChat.rejected, (state, action) => {
                 state.createChatError[action.meta.requestId] = action.error.message;
                 state.createChatStatus[action.meta.requestId] = 'failed';
+            })
+            .addCase(leaveGroupChat.pending, (state, action) => {
+                state.leaveGroupChatStatus[action.meta.requestId] = 'loading';
+            })
+            .addCase(leaveGroupChat.fulfilled, (state, action) => {
+                state.leaveGroupChatStatus[action.meta.requestId] = 'succeeded';
+            })
+            .addCase(leaveGroupChat.rejected, (state, action) => {
+                state.leaveGroupChatError[action.meta.requestId] = action.error.message;
+                state.leaveGroupChatStatus[action.meta.requestId] = 'failed';
             })
             .addCase(getChatData.pending, (state, action) => {
                 state.getChatDataStatus[action.meta.requestId] = 'loading';
@@ -127,12 +147,15 @@ export const chatReducer = createSlice({
 
 export const {
     clearChatData,
+    clearLeaveChat,
     clearCreateChat,
     clearGroupInfo
 } = chatReducer.actions
 
 export const selectCreateChatStatus = state => state.chat.createChatStatus
 export const selectCreateChatError = state => state.chat.createChatError
+export const selectLeaveGroupChatStatus = state => state.chat.leaveGroupChatStatus
+export const selectLeaveGroupChatError = state => state.chat.leaveGroupChatError
 export const selectGetChatsStatus = state => state.chat.getChatDataStatus
 export const selectGetChatDataError = state => state.chat.getChatDataError
 export const selectChatData = state => state.chat.chatData

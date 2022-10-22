@@ -1,4 +1,4 @@
-import { Box, Heading, Center, VStack, Text, FlatList, Spinner, Input, Icon, HStack } from 'native-base'
+import { Box, Heading, Center, VStack, Text, FlatList, Spinner, Input, Icon, HStack, Button } from 'native-base'
 import GroupIcon from '../Utils/GroupIcon'
 import { Pressable, useWindowDimensions, Keyboard } from 'react-native'
 import React, { useEffect, useState, useLayoutEffect } from 'react'
@@ -9,12 +9,13 @@ import FriendEntry from '../User/FriendEntry';
 import ReadMore from '@fawazahmed/react-native-read-more';
 import { getDateFromTimestamp } from '../../utils/date';
 import { useSelector, useDispatch } from 'react-redux';
-import { changeGroupPhoto, selectChangeGroupPhotoError, selectChangeGroupPhotoStatus, selectGroupDescription, selectGroupName } from './chatSlice'
+import { changeGroupPhoto, selectChangeGroupPhotoError, selectChangeGroupPhotoStatus, selectGroupDescription, selectGroupName, selectLeaveGroupChatError, selectLeaveGroupChatStatus, leaveGroupChat } from './chatSlice'
 import { Feather } from '@expo/vector-icons'
 import ChangePicModal from '../Utils/ChangePicModal'
-import { createOneButtonAlert } from '../Alerts/OneButtonPopUp'
+import { createOneButtonActionAlert, createOneButtonAlert } from '../Alerts/OneButtonPopUp'
 import { AntDesignHeaderButtons } from '../Navigation/MyHeaderButtons.js';
 import { Item } from 'react-navigation-header-buttons';
+import { getAuth } from 'firebase/auth'
 
 const ChatInfo = ({ route, navigation }) => {
     const layout = useWindowDimensions()
@@ -29,8 +30,12 @@ const ChatInfo = ({ route, navigation }) => {
     const dispatch = useDispatch();
     const changeGroupPhotoStatus = useSelector(selectChangeGroupPhotoStatus);
     const changeGroupPhotoError = useSelector(selectChangeGroupPhotoError);
-    const [requestId, setRequestId] = useState(null);
+    const [photoRequestId, setPhotoRequestId] = useState(null);
     const [searchFocused, setSearchFocused] = useState(false);
+    const auth = getAuth();
+    const leaveGroupChatStatus = useSelector(selectLeaveGroupChatStatus);
+    const leaveGroupChatError = useSelector(selectLeaveGroupChatError);
+    const [leaveRequestId, setLeaveRequestId] = useState(null)
 
     useLayoutEffect(() => {
         let isSubscribed = true;
@@ -76,21 +81,30 @@ const ChatInfo = ({ route, navigation }) => {
         let isSubscribed = true;
         if (isSubscribed && chatInfo && photoURL != chatInfo["photoUrl"]) {
             let request = dispatch(changeGroupPhoto({ chatId: route.params["chatId"], photoURI: photoURL }));
-            setRequestId(request["requestId"]);
+            setPhotoRequestId(request["photoRequestId"]);
         }
     }, [photoURL])
 
     useEffect(() => {
         let isSubscribed = true;
-        if (isSubscribed && changeGroupPhotoStatus[requestId] === 'succeeded') {
+        if (isSubscribed && changeGroupPhotoStatus[photoRequestId] === 'succeeded') {
             setChatInfo({
                 ...chatInfo,
                 photoURL: photoURL
             })
-        } else if (isSubscribed && changeGroupPhotoStatus[requestId] === 'failed') {
-            createOneButtonAlert('Error', changeGroupPhotoError[requestId], 'Close')
+        } else if (isSubscribed && changeGroupPhotoStatus[photoRequestId] === 'failed') {
+            createOneButtonAlert('Error', changeGroupPhotoError[photoRequestId], 'Close')
         }
-    }, [changeGroupPhotoStatus[requestId]])
+    }, [changeGroupPhotoStatus[photoRequestId]])
+
+    useEffect(() => {
+        let isSubscribed = true;
+        if (isSubscribed && leaveGroupChatStatus[leaveRequestId] === 'succeeded') {
+            navigation.popToTop();
+        } else if (isSubscribed && leaveGroupChatStatus[leaveRequestId] === 'failed') {
+            createOneButtonAlert('Error', leaveGroupChatError[leaveRequestId], 'Close')
+        }
+    }, [leaveGroupChatStatus[leaveRequestId]])
 
     useEffect(() => {
         let isSubscribed = true;
@@ -108,7 +122,7 @@ const ChatInfo = ({ route, navigation }) => {
             <VStack mx={layout.width * 0.05} mt={layout.height * 0.025} mb={layout.height * 0.01} space={layout.height * 0.02}>
                 {!searchFocused && <>
                     <Center>
-                        <GroupIcon size={layout.height * 0.2} photoURL={photoURL} borderWidth={1} borderColor="muted.400" onPress={() => setOpenModal(true)} isDisabled={changeGroupPhotoStatus[requestId] === 'loading'}>
+                        <GroupIcon size={layout.height * 0.2} photoURL={photoURL} borderWidth={1} borderColor="muted.400" onPress={() => setOpenModal(true)} isDisabled={changeGroupPhotoStatus[photoRequestId] === 'loading'}>
                             <Center alignItems="center" justifyContent="center" backgroundColor="primary.500" borderRadius="full"
                                 position="absolute" bottom={0} right={0} w={layout.height * 0.05} h={layout.height * 0.05}>
                                 <Icon color="white" as={Feather} name="edit-2" size={layout.height * 0.02} />
@@ -175,6 +189,14 @@ const ChatInfo = ({ route, navigation }) => {
                             }}
                             keyExtractor={(item, index) => item.id} />
                     </VStack>
+                </Box>}
+                {!searchFocused && <Box>
+                    <Button variant="outline" colorScheme="warning" onPress={() => createOneButtonActionAlert("Leave Group", "Do you really want to leave this group?", "Yes", "No", () => {
+                        let request = dispatch(leaveGroupChat({ chatId: route.params["chatId"], userId: auth.currentUser.uid }));
+                        setLeaveRequestId(request["requestId"]);
+                    })}>
+                        Leave Chat
+                    </Button>
                 </Box>}
                 {!groupParticipants &&
                     <Box flex={1} alignItems="center" justifyContent="center">

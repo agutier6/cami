@@ -27,8 +27,8 @@ const ChatMain = ({ navigation }) => {
     useEffect(() => {
         let isSubscribed = true;
         if (isSubscribed) {
-            dispatch(clearChatData);
-            dispatch(clearGroupInfo);
+            dispatch(clearChatData());
+            dispatch(clearGroupInfo());
             setChats([])
         }
         const unsubscribe = onSnapshot(query(collection(firestore, `users/${auth.currentUser.uid}/groupChats`), orderBy('lastModified', 'desc')), querySnapshot => {
@@ -53,6 +53,9 @@ const ChatMain = ({ navigation }) => {
                 let request = dispatch(getChatData({ chats: newChats }));
                 setRequestId(request["requestId"]);
             }
+        }
+        if (isSubscribed && chats && chats.length < Object.keys(chatData).length) {
+            dispatch(clearChatData());
         }
         return () => isSubscribed = false;
     }, [chats, chatData])
