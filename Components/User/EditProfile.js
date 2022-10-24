@@ -72,7 +72,7 @@ function EditProfile({ route, navigation }) {
     return (
         <KeyboardAvoidingView alignItems="center" flex={1} justifyContent="center" mb={layout.height * 0.05}>
             <VStack space={layout.height * 0.01} mx={layout.width * 0.05} alignItems="center" my={layout.height * 0.05}>
-                <UserAvatar photoURL={photoURL} action={() => setOpenModal(true)} width={layout.width * 0.35}>
+                <UserAvatar photoURL={photoURL} action={() => setOpenModal(true)} width={layout.width * 0.351}>
                     <Center backgroundColor="primary.500" borderRadius="full"
                         position="absolute" bottom={0} right={0} w={layout.height * 0.05} h={layout.height * 0.05}>
                         <Icon color="white" as={Feather} name="edit-2" size={layout.height * 0.02} />

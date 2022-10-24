@@ -15,16 +15,14 @@ export async function signUp(auth, email, password, name) {
     try {
       await createUserWithEmailAndPassword(auth, email, password)
       updateProfile(auth.currentUser, {
-        displayName: name,
-        photoURL: "https://www.w3schools.com/css/img_lights.jpg"
+        displayName: name
       }).catch((error) => {
         response.message = error.message;
         response.success = false;
         console.log(response.message);
       }).then(async () => {
         await setDoc(doc(firestore, "users", auth.currentUser.uid), {
-          displayName: auth.currentUser.displayName,
-          photoURL: "https://www.w3schools.com/css/img_lights.jpg"
+          displayName: auth.currentUser.displayName
         }).catch((error) => {
           response.message = error.message;
           response.success = false;

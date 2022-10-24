@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Box, VStack, FlatList, Spinner, Input, Fab, Icon, Center } from 'native-base';
 import { useWindowDimensions } from 'react-native';
 import { getAuth } from 'firebase/auth';
-import FriendEntry from './../User/FriendEntry';
+import UserEntry from './../User/UserEntry';
 import { getFriendsAsync, getFriendsDataAsync } from '../../services/friends';
 import UserAvatar from '../User/UserAvatar';
 import { AntDesign, Entypo } from '@expo/vector-icons';
@@ -119,12 +119,12 @@ const AddParticipants = ({ route, navigation }) => {
                         return 0;
                     }) : Array.from(friendsData.values())}
                         renderItem={({ item }) => {
-                            return <FriendEntry userData={item} action={() => handleSelect(item.id)}>
+                            return <UserEntry userData={item} action={() => handleSelect(item.id)}>
                                 <Center backgroundColor="primary.500" borderRadius="full"
                                     position="absolute" bottom={0} right={0} w={layout.height * 0.0225} h={layout.height * 0.0225}>
                                     <Icon color="white" as={Entypo} name="check" size={layout.height * 0.015} />
                                 </Center>
-                            </FriendEntry>
+                            </UserEntry>
                         }}
                         keyExtractor={(item, index) => item.id} />
                 </VStack>

@@ -89,7 +89,7 @@ const ChatMain = ({ navigation }) => {
                             dispatch(clearChatData());
                             dispatch(clearGroupInfo());
                         }}
-                        refreshing={Object.keys(chatData).length === 0}
+                        refreshing={Object.keys(chatData).length === 0 && (!chats || chats.length != 0)}
                         keyExtractor={(item, index) => item.id} />
                 </VStack>
             </Box>

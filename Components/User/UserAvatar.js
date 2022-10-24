@@ -1,4 +1,4 @@
-import { Ionicons } from '@expo/vector-icons';
+import { Feather } from '@expo/vector-icons';
 import { VStack, Avatar, Text, Pressable, Box, Center, Icon } from 'native-base';
 import React from 'react'
 
@@ -16,7 +16,7 @@ const UserAvatar = ({ photoURL, action, width, children, text, ...props }) => {
                             uri: photoURL
                         }} />}
                     {!photoURL && <Center size={width} borderRadius="full" backgroundColor="gray.300">
-                        <Icon color="gray.400" as={Ionicons} name="person" size={width * 0.5} />
+                        <Icon color="gray.400" as={Feather} name="user" size={width / 2} />
                     </Center>}
                     {children}
                 </Box>

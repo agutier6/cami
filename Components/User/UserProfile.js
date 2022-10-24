@@ -7,6 +7,7 @@ import { getAuth, signOut } from 'firebase/auth';
 import { useDispatch, useSelector } from 'react-redux';
 import { AntDesignHeaderButtons } from '../Navigation/MyHeaderButtons.js';
 import { Item } from 'react-navigation-header-buttons';
+import UserAvatar from './UserAvatar';
 
 const UserProfile = ({ route, navigation }) => {
     const firestore = getFirestore();
@@ -70,9 +71,7 @@ const UserProfile = ({ route, navigation }) => {
         <Box>
             <VStack>
                 <HStack mx={layout.width * 0.05} mt={layout.height * 0.025} mb={layout.height * 0.01} alignItems="center">
-                    <Avatar size={layout.width * 0.2} source={{
-                        uri: userData.photoURL
-                    }} />
+                    <UserAvatar photoURL={userData.photoURL} width={layout.width * 0.2} />
                     <Spacer />
                     <Pressable onPress={() => navigation.push("Friends", { userId: route["params"] ? route.params.userId : auth.currentUser.uid })}>
                         <VStack alignContent="center" alignItems="center">

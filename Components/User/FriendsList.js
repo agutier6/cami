@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Box, VStack, FlatList, Spinner, Input } from 'native-base';
 import { useWindowDimensions } from 'react-native';
 import { getAuth } from 'firebase/auth';
-import FriendEntry from './FriendEntry';
+import UserEntry from './UserEntry';
 import { getFriendsAsync, getFriendsDataAsync } from '../../services/friends';
 import { handleUserSearch } from '../../utils/search';
 
@@ -61,7 +61,7 @@ const FriendsList = ({ route, navigation }) => {
                     return 0;
                 }) : Array.from(friendsData.values())}
                     renderItem={({ item }) => {
-                        return <FriendEntry userData={item} action={() => navigation.push("User Profile", { userId: item.id })} />
+                        return <UserEntry userData={item} action={() => navigation.push("User Profile", { userId: item.id })} />
                     }}
                     keyExtractor={(item, index) => item.id} />
             </VStack>

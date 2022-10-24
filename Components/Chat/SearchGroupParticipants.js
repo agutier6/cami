@@ -4,7 +4,7 @@ import React, { useEffect, useState, useLayoutEffect } from 'react'
 import { getGroupParticipantsAsync } from '../../services/chats'
 import { getFriendsDataAsync } from '../../services/friends'
 import { handleUserSearch } from '../../utils/search';
-import FriendEntry from '../User/FriendEntry';
+import UserEntry from '../User/UserEntry';
 
 
 const SearchGroupParticipants = ({ route, navigation }) => {
@@ -52,7 +52,7 @@ const SearchGroupParticipants = ({ route, navigation }) => {
                         return 0;
                     }) : Array.from(groupParticipantsData.values())}
                         renderItem={({ item }) => {
-                            return <FriendEntry userData={item} isAdmin={groupParticipants[item.id] === 'admin'} action={() => navigation.push("User Profile", { userId: item.id })} />
+                            return <UserEntry userData={item} isAdmin={groupParticipants[item.id] === 'admin'} action={() => navigation.push("User Profile", { userId: item.id })} />
                         }}
                         keyExtractor={(item, index) => item.id} />
                 </VStack>

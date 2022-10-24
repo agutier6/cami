@@ -4,7 +4,7 @@ import { useWindowDimensions } from 'react-native'
 import React, { useEffect, useState } from 'react'
 import { getChatInfoAsync, getGroupParticipantsWithLimitAsync } from '../../services/chats'
 import { getFriendsDataAsync } from '../../services/friends'
-import FriendEntry from '../User/FriendEntry';
+import UserEntry from '../User/UserEntry';
 import ReadMore from '@fawazahmed/react-native-read-more';
 import { getDateFromTimestamp } from '../../utils/date';
 import { useSelector, useDispatch } from 'react-redux';
@@ -194,7 +194,7 @@ const ChatInfo = ({ route, navigation }) => {
                                 </HStack>
                             </Pressable>}
                         {Array.from(groupParticipantsData.values()).map(item =>
-                            <FriendEntry userData={item} isAdmin={groupParticipants[item.id] === 'admin'} action={() => {
+                            <UserEntry userData={item} isAdmin={groupParticipants[item.id] === 'admin'} action={() => {
                                 setSelectedDisplayName(item["displayName"]);
                                 setSelectedUserId(item["id"]);
                                 setParticipantActionModalOpen(true);

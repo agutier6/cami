@@ -3,7 +3,7 @@ import { Box, VStack, HStack, Avatar, Text, Pressable, Spacer, Center, Icon, Bad
 import { useWindowDimensions } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 
-export default function FriendEntry({ userData, action, isAdmin, children, ...props }) {
+export default function UserEntry({ userData, action, isAdmin, children, ...props }) {
     const layout = useWindowDimensions();
 
     if (!userData) {
