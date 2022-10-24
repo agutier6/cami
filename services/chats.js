@@ -1,4 +1,4 @@
-import { doc, getFirestore, addDoc, writeBatch, collection, deleteDoc, query, getDocs, where, getDoc, updateDoc } from 'firebase/firestore';
+import { doc, getFirestore, addDoc, writeBatch, collection, deleteDoc, query, getDocs, where, getDoc, updateDoc, deleteField, increment, limit } from 'firebase/firestore';
 import { uploadImageAsync } from './imagePicker';
 import { getStorage, ref, deleteObject } from "firebase/storage";
 
@@ -12,7 +12,8 @@ export const createChatAsync = async (sender, recipients, name, photoURI, creato
             creatorName: creatorName,
             name: name,
             creationTimestamp: Date.now(),
-            description: description
+            description: description,
+            userCount: 1
         });
         if (chat["id"]) {
             try {
@@ -26,12 +27,15 @@ export const createChatAsync = async (sender, recipients, name, photoURI, creato
                 batch.set(doc(firestore, `users/${sender}/groupChats`, chat.id), {
                     lastModified: Date.now()
                 })
-                batch.set(doc(firestore, `groupChats/${chat.id}/users`, sender), {})
+                batch.set(doc(firestore, `groupChats/${chat.id}/users`, sender), { role: 'admin' })
                 recipients.forEach(recipient => {
                     batch.set(doc(firestore, `users/${recipient}/groupChats`, chat.id), {
                         lastModified: Date.now()
                     })
                     batch.set(doc(firestore, `groupChats/${chat.id}/users`, recipient), {})
+                })
+                batch.update(doc(firestore, `groupChats`, chat.id), {
+                    numParticipants: increment(recipients.length)
                 })
                 batch.commit();
             } catch (error) {
@@ -53,6 +57,40 @@ export const leaveGroupChatAsync = async (chatId, userId) => {
         batch.commit();
     } catch (error) {
         console.error(error);
+    }
+}
+
+export const addGroupParticipantsAsync = async (chatId, recipients) => {
+    try {
+        const batch = writeBatch(firestore);
+        recipients.forEach(recipient => {
+            batch.set(doc(firestore, `users/${recipient}/groupChats`, chatId), {
+                lastModified: Date.now()
+            })
+            batch.set(doc(firestore, `groupChats/${chatId}/users`, recipient), {})
+        })
+        batch.update(doc(firestore, `groupChats`, chatId), {
+            numParticipants: increment(recipients.length)
+        })
+        batch.commit();
+    } catch (error) {
+        console.error(error)
+    }
+}
+
+export const addGroupAdminAsync = async (chatId, newAdminId) => {
+    try {
+        updateDoc(doc(firestore, `groupChats/${chatId}/users`, newAdminId), { role: 'admin' })
+    } catch (error) {
+        console.log(error);
+    }
+}
+
+export const removeGroupAdminAsync = async (chatId, adminId) => {
+    try {
+        updateDoc(doc(firestore, `groupChats/${chatId}/users`, adminId), { role: deleteField() })
+    } catch (error) {
+        console.log(error);
     }
 }
 
@@ -80,8 +118,21 @@ export const getChatDataAsync = async (chats) => {
 
 export const getGroupParticipantsAsync = async (groupId) => {
     try {
+        let participants = {}
         const users = await getDocs(query(collection(firestore, `groupChats/${groupId}/users`)));
-        return users.docs.map(user => user.id);
+        users.docs.forEach(user => participants[user.id] = user.data()["role"]);
+        return participants;
+    } catch (error) {
+        console.error(error);
+    }
+}
+
+export const getGroupParticipantsWithLimitAsync = async (groupId, lim) => {
+    try {
+        let participants = {}
+        const users = await getDocs(query(collection(firestore, `groupChats/${groupId}/users`), limit(lim)));
+        users.docs.forEach(user => participants[user.id] = user.data()["role"]);
+        return participants;
     } catch (error) {
         console.error(error);
     }

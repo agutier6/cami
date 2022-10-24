@@ -8,14 +8,20 @@ import UserAvatar from '../User/UserAvatar';
 import { AntDesign, Entypo } from '@expo/vector-icons';
 import { createOneButtonAlert } from '../Alerts/OneButtonPopUp';
 import { handleUserSearch } from '../../utils/search';
+import { useDispatch, useSelector } from 'react-redux';
+import { addGroupParticipants, clearCreateChat, selectAddGroupParticipantsError, selectAddGroupParticipantsStatus } from './chatSlice';
 
-const AddParticipants = ({ navigation }) => {
+const AddParticipants = ({ route, navigation }) => {
     const [searchFriends, setSearchFriends] = useState(null);
     const [friends, setFriends] = useState(null);
     const [friendsData, setFriendsData] = useState(new Map());
     const [selectedFriends, setSelectedFriends] = useState([]);
     const layout = useWindowDimensions();
     const auth = getAuth();
+    const [requestId, setRequestId] = useState(null);
+    const dispatch = useDispatch();
+    const addGroupParticipantsStatus = useSelector(selectAddGroupParticipantsStatus);
+    const addGroupParticipantsError = useSelector(selectAddGroupParticipantsError)
 
     useEffect(() => {
         let isSubscribed = true;
@@ -24,6 +30,7 @@ const AddParticipants = ({ navigation }) => {
             setSearchFriends(null);
             setFriendsData(new Map());
             setSelectedFriends([]);
+            dispatch(clearCreateChat());
             async function getFriends() {
                 if (isSubscribed) {
                     setFriends(await getFriendsAsync('accepted', auth.currentUser.uid));
@@ -44,6 +51,18 @@ const AddParticipants = ({ navigation }) => {
         }
         return () => isSubscribed = false;
     }, [friends]);
+
+    useEffect(() => {
+        let isSubscribed = true;
+        if (isSubscribed) {
+            if (addGroupParticipantsStatus[requestId] === 'succeeded') {
+                navigation.pop(2);
+            } else if (addGroupParticipantsStatus[requestId] === 'failed') {
+                createOneButtonAlert('Error', addGroupParticipantsError[requestId], 'Close')
+            }
+        }
+        return () => isSubscribed = false;
+    }, [addGroupParticipantsStatus[requestId]])
 
     function handleSelect(id) {
         let temp = friendsData.get(id);
@@ -113,10 +132,16 @@ const AddParticipants = ({ navigation }) => {
             <Fab renderInPortal={false}
                 shadow={2} size="sm"
                 bottom={layout.height * 0.025}
+                isLoading={addGroupParticipantsStatus[requestId] === 'loading'}
                 icon={<Icon color="white" as={AntDesign} name="arrowright" size="sm" />}
                 onPress={() => {
                     if (selectedFriends.length > 0) {
-                        navigation.push("Add Subject", { groupParticipants: selectedFriends });
+                        if (route && route["params"] && route["params"]["chatId"]) {
+                            let request = dispatch(addGroupParticipants({ chatId: route.params["chatId"], recipients: selectedFriends.map(participant => participant.id) }));
+                            setRequestId(request["requestId"]);
+                        } else {
+                            navigation.push("Add Subject", { groupParticipants: selectedFriends });
+                        }
                     } else {
                         createOneButtonAlert("Error", "Select some friends to continue.", "Close")
                     }

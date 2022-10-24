@@ -9,6 +9,7 @@ import ChatInfo from '../Chat/ChatInfo';
 import FriendsList from '../User/FriendsList';
 import EditGroupDescription from '../Chat/EditGroupDescription';
 import EditGroupName from '../Chat/EditGroupName';
+import SearchGroupParticipants from '../Chat/SearchGroupParticipants';
 import { createStackNavigator } from '@react-navigation/stack';
 import { AntDesignHeaderButtons } from '../Navigation/MyHeaderButtons.js';
 import { Item } from 'react-navigation-header-buttons';
@@ -54,6 +55,8 @@ const Chat = () => {
             <Stack.Screen name="Friends" component={FriendsList} />
             <Stack.Screen name="Group Description" component={EditGroupDescription} />
             <Stack.Screen name="Group Name" component={EditGroupName} />
+            <Stack.Screen name="Search Participants" component={SearchGroupParticipants} />
+
         </Stack.Navigator>
     )
 }

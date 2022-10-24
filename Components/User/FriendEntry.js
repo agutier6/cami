@@ -1,9 +1,9 @@
 import React from 'react'
-import { Box, VStack, HStack, Avatar, Text, Pressable, Spacer, Center, Icon } from 'native-base';
+import { Box, VStack, HStack, Avatar, Text, Pressable, Spacer, Center, Icon, Badge } from 'native-base';
 import { useWindowDimensions } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { Feather } from '@expo/vector-icons';
 
-export default function FriendEntry({ userData, action, children, ...props }) {
+export default function FriendEntry({ userData, action, isAdmin, children, ...props }) {
     const layout = useWindowDimensions();
 
     if (!userData) {
@@ -22,13 +22,13 @@ export default function FriendEntry({ userData, action, children, ...props }) {
                     action();
                 }
             }}>
-                <HStack space={[2, 3]} justifyContent="space-between" >
+                <HStack space={[2, 3]} justifyContent="space-between" alignItems="center">
                     <Box>
                         {userData["photoURL"] && <Avatar size={layout.height * 0.06} source={{
                             uri: userData.photoURL
                         }} />}
                         {!userData["photoURL"] && <Center size={layout.height * 0.06} borderRadius="full" backgroundColor="gray.300">
-                            <Icon color="gray.400" as={Ionicons} name="person" size={layout.height * 0.03} />
+                            <Icon color="gray.400" as={Feather} name="user" size={layout.height * 0.03} />
                         </Center>}
                         {(userData["selected"] === true) && children}
                     </Box>
@@ -45,6 +45,7 @@ export default function FriendEntry({ userData, action, children, ...props }) {
                         </Text>
                     </VStack>
                     <Spacer />
+                    {isAdmin && <Badge variant="outline" colorScheme="primary" h={layout.height * 0.03}>Group Admin</Badge>}
                 </HStack>
             </Pressable>
         </Box>
