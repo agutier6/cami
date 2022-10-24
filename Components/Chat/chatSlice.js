@@ -1,8 +1,12 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit'
-import { createChatAsync, getChatDataAsync, editGroupDescriptionAsync, changeGroupPhotoAsync, changeGroupNameAsync, leaveGroupChatAsync, addGroupParticipantsAsync } from '../../services/chats';
+import { createChatAsync, getChatDataAsync, editGroupDescriptionAsync, changeGroupPhotoAsync, changeGroupNameAsync, leaveGroupChatAsync, addGroupParticipantsAsync, deleteChatAsync } from '../../services/chats';
 
 export const createChat = createAsyncThunk('chat/createChat', async ({ sender, recipients, name, photoURI, creatorName, description }) => {
     await createChatAsync(sender, recipients, name, photoURI, creatorName, description);
+});
+
+export const deleteChat = createAsyncThunk('chat/deleteChat', async ({ chatId }) => {
+    await deleteChatAsync(chatId);
 });
 
 export const addGroupParticipants = createAsyncThunk('chat/addGroupParticipants', async ({ chatId, recipients }) => {
@@ -34,6 +38,8 @@ export const chatReducer = createSlice({
     initialState: {
         createChatStatus: {},
         createChatError: {},
+        deleteChatStatus: {},
+        deleteChatError: {},
         addGroupParticipantsStatus: {},
         addGroupParticipantsError: {},
         leaveGroupChatStatus: {},
@@ -60,6 +66,8 @@ export const chatReducer = createSlice({
         clearCreateChat: (state) => {
             state.createChatStatus = {};
             state.createChatError = {};
+            state.deleteChatStatus = {};
+            state.deleteChatError = {};
             state.addGroupParticipantsStatus = {};
             state.addGroupParticipantsError = {};
         },
@@ -90,6 +98,16 @@ export const chatReducer = createSlice({
             .addCase(createChat.rejected, (state, action) => {
                 state.createChatError[action.meta.requestId] = action.error.message;
                 state.createChatStatus[action.meta.requestId] = 'failed';
+            })
+            .addCase(deleteChat.pending, (state, action) => {
+                state.deleteChatStatus[action.meta.requestId] = 'loading';
+            })
+            .addCase(deleteChat.fulfilled, (state, action) => {
+                state.deleteChatStatus[action.meta.requestId] = 'succeeded';
+            })
+            .addCase(deleteChat.rejected, (state, action) => {
+                state.deleteChatError[action.meta.requestId] = action.error.message;
+                state.deleteChatStatus[action.meta.requestId] = 'failed';
             })
             .addCase(addGroupParticipants.pending, (state, action) => {
                 state.addGroupParticipantsStatus[action.meta.requestId] = 'loading';
@@ -172,6 +190,8 @@ export const {
 
 export const selectCreateChatStatus = state => state.chat.createChatStatus
 export const selectCreateChatError = state => state.chat.createChatError
+export const selectDeleteChatStatus = state => state.chat.deleteChatStatus
+export const selectDeleteChatError = state => state.chat.deleteChatError
 export const selectAddGroupParticipantsStatus = state => state.chat.addGroupParticipantsStatus
 export const selectAddGroupParticipantsError = state => state.chat.addGroupParticipantsError
 export const selectLeaveGroupChatStatus = state => state.chat.leaveGroupChatStatus

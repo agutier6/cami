@@ -13,7 +13,7 @@ export const createChatAsync = async (sender, recipients, name, photoURI, creato
             name: name,
             creationTimestamp: Date.now(),
             description: description,
-            userCount: 1
+            numParticipants: 1
         });
         if (chat["id"]) {
             try {
@@ -54,9 +54,26 @@ export const leaveGroupChatAsync = async (chatId, userId) => {
         const batch = writeBatch(firestore);
         batch.delete(doc(firestore, `groupChats/${chatId}/users`, userId));
         batch.delete(doc(firestore, `users/${userId}/groupChats`, chatId));
+        batch.update(doc(firestore, 'groupChats', chatId), {
+            numParticipants: increment(-1)
+        })
         batch.commit();
     } catch (error) {
         console.error(error);
+    }
+}
+
+export const deleteChatAsync = async (chatId) => {
+    try {
+        const groupParticipants = await getDocs(collection(firestore, `groupChats/${chatId}/users`));
+        const batch = writeBatch(firestore);
+        groupParticipants.docs.forEach(participant => {
+            batch.delete(doc(firestore, `users/${participant.id}/groupChats`, chatId));
+        });
+        batch.delete(doc(firestore, 'groupChats', chatId));
+        batch.commit();
+    } catch (error) {
+        console.log(error);
     }
 }
 

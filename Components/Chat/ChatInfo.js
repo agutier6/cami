@@ -8,11 +8,12 @@ import FriendEntry from '../User/FriendEntry';
 import ReadMore from '@fawazahmed/react-native-read-more';
 import { getDateFromTimestamp } from '../../utils/date';
 import { useSelector, useDispatch } from 'react-redux';
-import { changeGroupPhoto, selectChangeGroupPhotoError, selectChangeGroupPhotoStatus, selectGroupDescription, selectGroupName, selectLeaveGroupChatError, selectLeaveGroupChatStatus, leaveGroupChat } from './chatSlice'
+import { changeGroupPhoto, selectChangeGroupPhotoError, selectChangeGroupPhotoStatus, selectGroupDescription, selectGroupName, selectLeaveGroupChatError, selectLeaveGroupChatStatus, leaveGroupChat, selectDeleteChatStatus, selectDeleteChatError, deleteChat } from './chatSlice'
 import { Feather, Ionicons } from '@expo/vector-icons'
 import ChangePicModal from '../Utils/ChangePicModal'
 import { createOneButtonActionAlert, createOneButtonAlert } from '../Alerts/OneButtonPopUp'
 import { getAuth } from 'firebase/auth'
+import ParticipantActionModal from './ParticipantActionModal'
 
 const GROUP_PARTICIPANTS_LIMIT = 10;
 
@@ -24,7 +25,8 @@ const ChatInfo = ({ route, navigation }) => {
     const groupDescription = useSelector(selectGroupDescription);
     const groupName = useSelector(selectGroupName);
     const [photoURL, setPhotoUrl] = useState(route ? route.params["photoURL"] : null);
-    const [openModal, setOpenModal] = useState(false);
+    const [changePicModalOpen, setChangePicModalOpen] = useState(false);
+    const [participantActionModalOpen, setParticipantActionModalOpen] = useState(false);
     const dispatch = useDispatch();
     const changeGroupPhotoStatus = useSelector(selectChangeGroupPhotoStatus);
     const changeGroupPhotoError = useSelector(selectChangeGroupPhotoError);
@@ -32,21 +34,24 @@ const ChatInfo = ({ route, navigation }) => {
     const auth = getAuth();
     const leaveGroupChatStatus = useSelector(selectLeaveGroupChatStatus);
     const leaveGroupChatError = useSelector(selectLeaveGroupChatError);
-    const [leaveRequestId, setLeaveRequestId] = useState(null)
-
+    const [leaveRequestId, setLeaveRequestId] = useState(null);
+    const [removeUserCount, setRemoveUserCount] = useState(0);
+    const deleteChatStatus = useSelector(selectDeleteChatStatus);
+    const deleteChatError = useSelector(selectDeleteChatError);
+    const [deleteChatRequestId, setDeleteChatRequestId] = useState(null);
+    const [selectedUserId, setSelectedUserId] = useState(null);
+    const [selectedDisplayName, setSelectedDisplayName] = useState();
 
     useEffect(() => {
         let isSubscribed = true;
         if (isSubscribed) {
-            setGroupParticipants(null);
-            setGroupParticipantsData(new Map());
-            setChatInfo(null);
             async function getGroupParticipantsAndChatInfo() {
                 setChatInfo(await getChatInfoAsync(route.params["chatId"]))
                 setGroupParticipants(await getGroupParticipantsWithLimitAsync(route.params["chatId"], GROUP_PARTICIPANTS_LIMIT));
             }
             getGroupParticipantsAndChatInfo();
         }
+        return () => isSubscribed = false;
     }, [])
 
     useEffect(() => {
@@ -55,6 +60,7 @@ const ChatInfo = ({ route, navigation }) => {
             let request = dispatch(changeGroupPhoto({ chatId: route.params["chatId"], photoURI: photoURL }));
             setPhotoRequestId(request["photoRequestId"]);
         }
+        return () => isSubscribed = false;
     }, [photoURL])
 
     useEffect(() => {
@@ -67,6 +73,7 @@ const ChatInfo = ({ route, navigation }) => {
         } else if (isSubscribed && changeGroupPhotoStatus[photoRequestId] === 'failed') {
             createOneButtonAlert('Error', changeGroupPhotoError[photoRequestId], 'Close')
         }
+        return () => isSubscribed = false;
     }, [changeGroupPhotoStatus[photoRequestId]])
 
     useEffect(() => {
@@ -76,14 +83,26 @@ const ChatInfo = ({ route, navigation }) => {
         } else if (isSubscribed && leaveGroupChatStatus[leaveRequestId] === 'failed') {
             createOneButtonAlert('Error', leaveGroupChatError[leaveRequestId], 'Close')
         }
+        return () => isSubscribed = false;
     }, [leaveGroupChatStatus[leaveRequestId]])
 
     useEffect(() => {
         let isSubscribed = true;
+        if (isSubscribed && deleteChatStatus[deleteChatRequestId] === 'succeeded') {
+            navigation.popToTop();
+        } else if (isSubscribed && deleteChatStatus[deleteChatRequestId] === 'failed') {
+            createOneButtonAlert('Error', deleteChatError[deleteChatRequestId], 'Close')
+        }
+        return () => isSubscribed = false;
+    }, [deleteChatStatus[deleteChatRequestId]])
+
+    async function getFriendsData() {
+        setGroupParticipantsData(await getFriendsDataAsync(Object.keys(groupParticipants)));
+    }
+
+    useEffect(() => {
+        let isSubscribed = true;
         if (groupParticipants && isSubscribed) {
-            async function getFriendsData() {
-                setGroupParticipantsData(await getFriendsDataAsync(Object.keys(groupParticipants)));
-            }
             getFriendsData();
         }
         return () => isSubscribed = false;
@@ -93,7 +112,7 @@ const ChatInfo = ({ route, navigation }) => {
         <ScrollView>
             <VStack mx={layout.width * 0.05} mt={layout.height * 0.025} mb={layout.height * 0.01} space={layout.height * 0.02}>
                 <Center>
-                    <GroupIcon size={layout.height * 0.2} photoURL={photoURL} borderWidth={1} borderColor="muted.400" onPress={() => setOpenModal(true)} isDisabled={changeGroupPhotoStatus[photoRequestId] === 'loading'}>
+                    <GroupIcon size={layout.height * 0.2} photoURL={photoURL} borderWidth={1} borderColor="muted.400" onPress={() => setChangePicModalOpen(true)} isDisabled={changeGroupPhotoStatus[photoRequestId] === 'loading'}>
                         <Center alignItems="center" justifyContent="center" backgroundColor="primary.500" borderRadius="full"
                             position="absolute" bottom={0} right={0} w={layout.height * 0.05} h={layout.height * 0.05}>
                             <Icon color="white" as={Feather} name="edit-2" size={layout.height * 0.02} />
@@ -113,7 +132,7 @@ const ChatInfo = ({ route, navigation }) => {
                         </HStack>
                     </Pressable>
                     <Text>
-                        {chatInfo ? "Group · " + chatInfo["numParticipants"] + " participants" : null}
+                        {chatInfo ? "Group · " + (chatInfo["numParticipants"] - removeUserCount) + " participants" : null}
                     </Text>
                 </VStack>
                 {chatInfo &&
@@ -146,7 +165,7 @@ const ChatInfo = ({ route, navigation }) => {
                     <VStack w={layout.width}>
                         <HStack h={layout.height * 0.04} alignItems="center" mx={layout.width * 0.025}>
                             <Text position="absolute" left={0} color="muted.500" bold>
-                                {chatInfo ? chatInfo["numParticipants"] + " participants" : null}
+                                {chatInfo ? (chatInfo["numParticipants"] - removeUserCount) + " participants" : null}
                             </Text>
                             <IconButton position="absolute" right={0} onPress={() => navigation.push("Search Participants", { chatId: route.params["chatId"], autoFocus: true })}
                                 icon={<Icon as={Ionicons} name="search" />} borderRadius="full" color="muted.500" />
@@ -170,7 +189,11 @@ const ChatInfo = ({ route, navigation }) => {
                                 </HStack>
                             </Pressable>}
                         {Array.from(groupParticipantsData.values()).map(item =>
-                            <FriendEntry userData={item} isAdmin={groupParticipants[item.id] === 'admin'} action={() => navigation.push("User Profile", { userId: item.id })} key={item.id} />
+                            <FriendEntry userData={item} isAdmin={groupParticipants[item.id] === 'admin'} action={() => {
+                                setSelectedDisplayName(item["displayName"]);
+                                setSelectedUserId(item["id"]);
+                                setParticipantActionModalOpen(true);
+                            }} key={item.id} />
                         )}
                         {chatInfo && chatInfo["numParticipants"] > GROUP_PARTICIPANTS_LIMIT && <Pressable onPress={() => navigation.push("Search Participants", { chatId: route.params["chatId"] })}
                             borderBottomWidth="1" borderTopWidth={1} _dark={{
@@ -188,20 +211,41 @@ const ChatInfo = ({ route, navigation }) => {
                         </Pressable>}
                     </VStack>
                 </Box>}
-                <Box>
-                    <Button variant="outline" colorScheme="warning" onPress={() => createOneButtonActionAlert("Leave Group", "Do you really want to leave this group?", "Yes", "No", () => {
+                <Button variant="outline" colorScheme="warning"
+                    isLoading={leaveGroupChatStatus[leaveRequestId] === 'loading'}
+                    onPress={() => createOneButtonActionAlert("Leave Group", "Do you really want to leave this group?", "Yes", "No", () => {
                         let request = dispatch(leaveGroupChat({ chatId: route.params["chatId"], userId: auth.currentUser.uid }));
                         setLeaveRequestId(request["requestId"]);
                     })}>
-                        Leave Chat
-                    </Button>
-                </Box>
+                    Leave Group
+                </Button>
+                {groupParticipants && groupParticipants[auth.currentUser.uid] === 'admin' &&
+                    <Button variant="subtle" colorScheme="danger"
+                        isLoading={deleteChatStatus[deleteChatRequestId] === 'loading'}
+                        onPress={() => createOneButtonActionAlert("Delete Group", "Do you really want to delete this group?\nThis action cannot be undone.", "Yes", "No", () => {
+                            let request = dispatch(deleteChat({ chatId: route.params["chatId"] }));
+                            setDeleteChatRequestId(request["requestId"]);
+                        })}>
+                        Delete Group
+                    </Button>}
                 {!groupParticipants &&
                     <Box alignItems="center" justifyContent="center" h={layout.height * 0.3}>
                         <Spinner size="lg" />
                     </Box>}
             </VStack>
-            <ChangePicModal setOpenModal={setOpenModal} openModal={openModal} setPhotoURL={setPhotoUrl} />
+            <ChangePicModal setOpenModal={setChangePicModalOpen} openModal={changePicModalOpen} setPhotoURL={setPhotoUrl} />
+            <ParticipantActionModal setOpenModal={setParticipantActionModalOpen} openModal={participantActionModalOpen}
+                userId={selectedUserId} displayName={selectedDisplayName}
+                isAdmin={groupParticipants && groupParticipants[auth.currentUser.uid] === 'admin'}
+                chatId={route.params["chatId"]} removeAction={() => {
+                    if (groupParticipants && Object.keys(groupParticipants).find(key => key === selectedUserId)) {
+                        let groupParticipantsTemp = groupParticipants;
+                        delete groupParticipantsTemp[selectedUserId];
+                        setGroupParticipants(groupParticipantsTemp);
+                        getFriendsData();
+                    }
+                    setRemoveUserCount(removeUserCount + 1)
+                }} />
         </ ScrollView>
     )
 }
