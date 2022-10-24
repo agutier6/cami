@@ -1,5 +1,5 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit'
-import { createChatAsync, getChatDataAsync, editGroupDescriptionAsync, changeGroupPhotoAsync, changeGroupNameAsync, leaveGroupChatAsync, addGroupParticipantsAsync, deleteChatAsync } from '../../services/chats';
+import { createChatAsync, getChatDataAsync, editGroupDescriptionAsync, changeGroupPhotoAsync, changeGroupNameAsync, leaveGroupChatAsync, addGroupParticipantsAsync, deleteChatAsync, addGroupAdminAsync, removeGroupAdminAsync } from '../../services/chats';
 
 export const createChat = createAsyncThunk('chat/createChat', async ({ sender, recipients, name, photoURI, creatorName, description }) => {
     await createChatAsync(sender, recipients, name, photoURI, creatorName, description);
@@ -33,6 +33,14 @@ export const leaveGroupChat = createAsyncThunk('chat/leaveGroupChat', async ({ c
     await leaveGroupChatAsync(chatId, userId);
 });
 
+export const addGroupAdmin = createAsyncThunk('chat/addGroupAdmin', async ({ chatId, userId }) => {
+    await addGroupAdminAsync(chatId, userId);
+});
+
+export const removeGroupAdmin = createAsyncThunk('chat/removeGroupAdmin', async ({ chatId, userId }) => {
+    await removeGroupAdminAsync(chatId, userId);
+});
+
 export const chatReducer = createSlice({
     name: 'chat',
     initialState: {
@@ -44,6 +52,10 @@ export const chatReducer = createSlice({
         addGroupParticipantsError: {},
         leaveGroupChatStatus: {},
         leaveGroupChatError: {},
+        addGroupAdminStatus: {},
+        addGroupAdminError: {},
+        removeGroupAdminStatus: {},
+        removeGroupAdminError: {},
         getChatDataStatus: {},
         getChatDataError: {},
         chatData: {},
@@ -70,10 +82,12 @@ export const chatReducer = createSlice({
             state.deleteChatError = {};
             state.addGroupParticipantsStatus = {};
             state.addGroupParticipantsError = {};
-        },
-        clearLeaveChat: (state) => {
             state.leaveGroupChatStatus = {};
             state.leaveGroupChatError = {};
+            state.addGroupAdminStatus = {};
+            state.addGroupAdminError = {};
+            state.removeGroupAdminStatus = {};
+            state.removeGroupAdminError = {};
         },
         clearGroupInfo: (state) => {
             state.editGroupDescriptionStatus = {};
@@ -178,12 +192,31 @@ export const chatReducer = createSlice({
                 state.changeGroupNameError[action.meta.requestId] = action.error.message;
                 state.changeGroupNameStatus[action.meta.requestId] = 'failed';
             })
+            .addCase(addGroupAdmin.pending, (state, action) => {
+                state.addGroupAdminStatus[action.meta.requestId] = 'loading';
+            })
+            .addCase(addGroupAdmin.fulfilled, (state, action) => {
+                state.addGroupAdminStatus[action.meta.requestId] = 'succeeded';
+            })
+            .addCase(addGroupAdmin.rejected, (state, action) => {
+                state.addGroupAdminError[action.meta.requestId] = action.error.message;
+                state.addGroupAdminStatus[action.meta.requestId] = 'failed';
+            })
+            .addCase(removeGroupAdmin.pending, (state, action) => {
+                state.removeGroupAdminStatus[action.meta.requestId] = 'loading';
+            })
+            .addCase(removeGroupAdmin.fulfilled, (state, action) => {
+                state.removeGroupAdminStatus[action.meta.requestId] = 'succeeded';
+            })
+            .addCase(removeGroupAdmin.rejected, (state, action) => {
+                state.removeGroupAdminError[action.meta.requestId] = action.error.message;
+                state.removeGroupAdminStatus[action.meta.requestId] = 'failed';
+            })
     }
 })
 
 export const {
     clearChatData,
-    clearLeaveChat,
     clearCreateChat,
     clearGroupInfo
 } = chatReducer.actions
@@ -196,6 +229,10 @@ export const selectAddGroupParticipantsStatus = state => state.chat.addGroupPart
 export const selectAddGroupParticipantsError = state => state.chat.addGroupParticipantsError
 export const selectLeaveGroupChatStatus = state => state.chat.leaveGroupChatStatus
 export const selectLeaveGroupChatError = state => state.chat.leaveGroupChatError
+export const selectAddGroupAdminStatus = state => state.chat.addGroupAdminStatus
+export const selectAddGroupAdminError = state => state.chat.addGroupAdminError
+export const selectRemoveGroupAdminStatus = state => state.chat.removeGroupAdminStatus
+export const selectRemoveGroupAdminError = state => state.chat.removeGroupAdminError
 export const selectGetChatsStatus = state => state.chat.getChatDataStatus
 export const selectGetChatDataError = state => state.chat.getChatDataError
 export const selectChatData = state => state.chat.chatData

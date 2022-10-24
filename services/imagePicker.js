@@ -56,6 +56,7 @@ export async function updateProfilePhotoURL(user, photoURL) {
 }
 
 export async function uploadImageAsync(uri, uploadPath) {
+    console.log('__________________________________UPLOAD_IMAGE_ASYNC_______________________________________');
     const blob = await new Promise((resolve, reject) => {
         const xhr = new XMLHttpRequest();
         xhr.onload = function () {

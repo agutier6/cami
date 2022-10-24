@@ -177,10 +177,12 @@ export const editGroupDescriptionAsync = async (groupId, desc) => {
 
 export const changeGroupPhotoAsync = async (groupId, photoURI) => {
     try {
-        const photoURL = await uploadImageAsync(photoURI, `groupChats/${groupId}/groupPic`);
-        updateDoc(doc(firestore, 'groupChats', groupId), {
-            photoURL: photoURL
-        })
+        if (photoURI) {
+            const photoURL = await uploadImageAsync(photoURI, `groupChats/${groupId}/groupPic`);
+            updateDoc(doc(firestore, 'groupChats', groupId), {
+                photoURL: photoURL
+            })
+        }
     } catch (error) {
         console.error(error);
     }

@@ -42,17 +42,34 @@ const ChatInfo = ({ route, navigation }) => {
     const [selectedUserId, setSelectedUserId] = useState(null);
     const [selectedDisplayName, setSelectedDisplayName] = useState();
 
+    async function getGroupParticipants() {
+        setGroupParticipants(await getGroupParticipantsWithLimitAsync(route.params["chatId"], GROUP_PARTICIPANTS_LIMIT));
+    }
+
+    async function getChatInfo() {
+        setChatInfo(await getChatInfoAsync(route.params["chatId"]))
+    }
+
     useEffect(() => {
         let isSubscribed = true;
         if (isSubscribed) {
-            async function getGroupParticipantsAndChatInfo() {
-                setChatInfo(await getChatInfoAsync(route.params["chatId"]))
-                setGroupParticipants(await getGroupParticipantsWithLimitAsync(route.params["chatId"], GROUP_PARTICIPANTS_LIMIT));
-            }
-            getGroupParticipantsAndChatInfo();
+            getGroupParticipants();
+            getChatInfo();
         }
         return () => isSubscribed = false;
     }, [])
+
+    async function getFriendsData() {
+        setGroupParticipantsData(await getFriendsDataAsync(Object.keys(groupParticipants)));
+    }
+
+    useEffect(() => {
+        let isSubscribed = true;
+        if (groupParticipants && isSubscribed) {
+            getFriendsData();
+        }
+        return () => isSubscribed = false;
+    }, [groupParticipants]);
 
     useEffect(() => {
         let isSubscribed = true;
@@ -95,18 +112,6 @@ const ChatInfo = ({ route, navigation }) => {
         }
         return () => isSubscribed = false;
     }, [deleteChatStatus[deleteChatRequestId]])
-
-    async function getFriendsData() {
-        setGroupParticipantsData(await getFriendsDataAsync(Object.keys(groupParticipants)));
-    }
-
-    useEffect(() => {
-        let isSubscribed = true;
-        if (groupParticipants && isSubscribed) {
-            getFriendsData();
-        }
-        return () => isSubscribed = false;
-    }, [groupParticipants]);
 
     return (
         <ScrollView>
@@ -234,10 +239,12 @@ const ChatInfo = ({ route, navigation }) => {
                     </Box>}
             </VStack>
             <ChangePicModal setOpenModal={setChangePicModalOpen} openModal={changePicModalOpen} setPhotoURL={setPhotoUrl} />
-            <ParticipantActionModal setOpenModal={setParticipantActionModalOpen} openModal={participantActionModalOpen}
+            {selectedUserId != auth.currentUser.uid && <ParticipantActionModal setOpenModal={setParticipantActionModalOpen} openModal={participantActionModalOpen}
                 userId={selectedUserId} displayName={selectedDisplayName}
                 isAdmin={groupParticipants && groupParticipants[auth.currentUser.uid] === 'admin'}
-                chatId={route.params["chatId"]} removeAction={() => {
+                selectedUserisAdmin={groupParticipants && groupParticipants[selectedUserId] === 'admin'}
+                chatId={route.params["chatId"]}
+                removeAction={() => {
                     if (groupParticipants && Object.keys(groupParticipants).find(key => key === selectedUserId)) {
                         let groupParticipantsTemp = groupParticipants;
                         delete groupParticipantsTemp[selectedUserId];
@@ -245,7 +252,12 @@ const ChatInfo = ({ route, navigation }) => {
                         getFriendsData();
                     }
                     setRemoveUserCount(removeUserCount + 1)
-                }} />
+                }}
+                adminAction={() => {
+                    if (groupParticipants && Object.keys(groupParticipants).find(key => key === selectedUserId)) {
+                        getGroupParticipants();
+                    }
+                }} />}
         </ ScrollView>
     )
 }
