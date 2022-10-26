@@ -32,7 +32,15 @@ const ChatMain = ({ navigation }) => {
             setChats([])
         }
         const unsubscribe = onSnapshot(query(collection(firestore, `users/${auth.currentUser.uid}/groupChats`), orderBy('lastModified', 'desc')), querySnapshot => {
-            setChats(querySnapshot.docs.map(doc => { return { id: doc.id, recentMessage: doc.data()["recentMessage"], lastModified: doc.data()["lastModified"] } }));
+            setChats(querySnapshot.docs.map(doc => {
+                return {
+                    id: doc.id,
+                    recentUid: doc.data()["recentUid"],
+                    recentMessage: doc.data()["recentMessage"],
+                    recentSender: doc.data()["recentSender"],
+                    lastModified: doc.data()["lastModified"]
+                }
+            }));
         });
         return () => {
             unsubscribe();
@@ -79,6 +87,7 @@ const ChatMain = ({ navigation }) => {
                             name={groupName[item.id] ? groupName[item.id] : chatData[item.id] ? chatData[item.id]["name"] : null}
                             photoURL={groupPhoto[item.id] ? groupPhoto[item.id] : chatData[item.id] ? chatData[item.id]["photoURL"] : null}
                             recentMessage={item["recentMessage"]}
+                            recentSender={auth.currentUser.uid === item["recentUid"] ? "You" : item["recentSender"]}
                             lastModified={item["lastModified"]}
                             action={() => navigation.push("Group Chat", {
                                 chatId: item.id,

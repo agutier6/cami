@@ -4,7 +4,7 @@ import { useWindowDimensions } from 'react-native';
 import { getChatEntryDate } from '../../utils/date';
 import GroupIcon from '../Utils/GroupIcon'
 
-export default function ChatEntry({ name, selected, photoURL, action, recentMessage, lastModified, children, ...props }) {
+export default function ChatEntry({ name, selected, photoURL, action, recentMessage, recentSender, lastModified, children, ...props }) {
     const layout = useWindowDimensions();
 
     if (!name) {
@@ -46,7 +46,7 @@ export default function ChatEntry({ name, selected, photoURL, action, recentMess
                         <Text _dark={{
                             color: "warmGray.50"
                         }} color="coolGray.800">
-                            {recentMessage}
+                            {recentSender + ": " + recentMessage}
                         </Text>
                     </VStack>
                     <Spacer />

@@ -34,18 +34,19 @@ const GroupChat = ({ route, navigation }) => {
             GiftedChat.append(previousMessages, messages)
         );
         const { _id, createdAt, text, user } = messages[0];
-        sendGroupMessageAsync(route["params"]["chatId"], { _id, createdAt, text, user })
+        sendGroupMessageAsync(route["params"]["chatId"], { _id, createdAt, text, user });
     }, []);
 
     return (
         <GiftedChat
             messages={messages}
-            showAvatarForEveryMessage={true}
             onSend={messages => onSend(messages)}
             user={{
-                displayName: auth.currentUser.displayName,
+                _id: auth.currentUser.uid,
+                name: auth.currentUser.displayName,
                 avatar: auth.currentUser.photoURL
             }}
+            renderUsernameOnMessage
         />
     )
 }
