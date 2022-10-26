@@ -10,9 +10,9 @@ export function getChatEntryDate(lastModified) {
     const date = new Date(lastModified);
     if (date.getDate() === now.getDate() && date.getMonth() === now.getMonth() && date.getFullYear() === now.getFullYear()) {
         if (date.getHours() >= 12) {
-            return (date.getHours() - 12 === 0 ? 12 : date.getHours() - 12) + ":" + date.getMinutes() + " PM";
+            return (date.getHours() - 12 === 0 ? 12 : date.getHours() - 12) + ":" + (date.getMinutes() < 10 ? "0" : "") + date.getMinutes() + " PM";
         } else {
-            return (date.getHours() === 0 ? 12 : date.getHours()) + ":" + date.getMinutes() + " AM";
+            return (date.getHours() === 0 ? 12 : date.getHours()) + ":" + (date.getMinutes() < 10 ? "0" : "") + date.getMinutes() + " AM";
         }
     } else if (date.getDate() === now.getDate() - 1 && date.getMonth() === now.getMonth() && date.getFullYear() === now.getFullYear()) {
         return "Yesterday";

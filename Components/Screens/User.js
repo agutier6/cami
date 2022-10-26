@@ -1,7 +1,7 @@
 import React from 'react';
 import EditProfile from '../User/EditProfile';
 import UserProfile from '../User/UserProfile';
-import FriendsList from '../User/FriendsList';
+import FriendsList from '../Friends/FriendsList';
 import { createStackNavigator } from '@react-navigation/stack';
 
 const Stack = createStackNavigator();

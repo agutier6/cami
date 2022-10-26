@@ -3,7 +3,7 @@ import { Box, VStack, FlatList, Spinner } from 'native-base';
 import { useWindowDimensions } from 'react-native';
 import { useIsFocused } from '@react-navigation/native';
 import { getAuth } from 'firebase/auth';
-import { clearFriendDetails, clearRequestDetails, selectGetFriendsStatus, selectFriends, getFriends } from './userSlice';
+import { clearFriendDetails, clearRequestDetails, selectGetFriendsStatus, selectFriends, getFriends } from './friendsSlice';
 import { useDispatch, useSelector } from 'react-redux';
 import FriendRequest from './FriendRequest';
 

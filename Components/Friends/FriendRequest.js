@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { Box, VStack, HStack, Avatar, Text, Pressable, Spacer, Button } from 'native-base';
-import { acceptFriendRequest, rejectFriendRequest, selectAcceptRequestStatus, selectRejectRequestStatus } from './userSlice';
+import { acceptFriendRequest, rejectFriendRequest, selectAcceptRequestStatus, selectRejectRequestStatus } from './friendsSlice';
 import { useDispatch, useSelector } from 'react-redux';
 import { getAuth } from 'firebase/auth';
 import { useWindowDimensions } from 'react-native';

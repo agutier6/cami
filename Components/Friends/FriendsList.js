@@ -2,17 +2,17 @@ import React, { useEffect, useState } from 'react';
 import { Box, VStack, FlatList, Spinner, Input } from 'native-base';
 import { useWindowDimensions } from 'react-native';
 import { getAuth } from 'firebase/auth';
-import UserEntry from './UserEntry';
+import UserEntry from '../User/UserEntry';
 import { getFriendsAsync, getFriendsDataAsync } from '../../services/friends';
 import { handleUserSearch } from '../../utils/search';
 
-const FriendsList = ({ route, navigation }) => {
+const FriendsList = ({ route, navigation, firstEntry, action }) => {
     const [searchFriends, setSearchFriends] = useState(null);
     const [friends, setFriends] = useState(null);
     const [friendsData, setFriendsData] = useState(new Map());
+    const auth = getAuth();
     const [userId] = useState(route ? route.params.userId : auth.currentUser.uid);
     const layout = useWindowDimensions();
-    const auth = getAuth();
 
     useEffect(() => {
         let isSubscribed = true;
@@ -52,6 +52,7 @@ const FriendsList = ({ route, navigation }) => {
         <Box alignItems="center">
             <VStack w={layout.width}>
                 <Input placeholder="Search" w={layout.width} onChangeText={(input) => handleUserSearch(input, setSearchFriends, friendsData)} autoCapitalize='none' blurOnSubmit />
+                {firstEntry}
                 <FlatList keyboardShouldPersistTaps='handled' data={searchFriends ? Array.from(searchFriends.values()).sort((a, b) => {
                     if (a.rating < b.rating) {
                         return 1;
@@ -61,7 +62,7 @@ const FriendsList = ({ route, navigation }) => {
                     return 0;
                 }) : Array.from(friendsData.values())}
                     renderItem={({ item }) => {
-                        return <UserEntry userData={item} action={() => navigation.push("User Profile", { userId: item.id })} />
+                        return <UserEntry userData={item} action={() => action ? action(item.id) : navigation.push("User Profile", { userId: item.id })} />
                     }}
                     keyExtractor={(item, index) => item.id} />
             </VStack>

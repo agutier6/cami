@@ -43,11 +43,11 @@ export default function ChatEntry({ name, selected, photoURL, action, recentMess
                                 </Text>
                             }
                         </HStack>
-                        <Text _dark={{
+                        {recentMessage && recentSender && <Text _dark={{
                             color: "warmGray.50"
                         }} color="coolGray.800">
                             {recentSender + ": " + recentMessage}
-                        </Text>
+                        </Text>}
                     </VStack>
                     <Spacer />
                 </HStack>

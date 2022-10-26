@@ -107,7 +107,7 @@ const ChatMain = ({ navigation }) => {
                 bottom={layout.height * 0.025}
                 icon={<Icon color="white" as={AntDesign} name="plus" size="sm" />}
                 onPress={() => {
-                    navigation.push("Add Participants");
+                    navigation.push("Create Chat");
                 }} />
         </>
     )

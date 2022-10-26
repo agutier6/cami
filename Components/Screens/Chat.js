@@ -1,12 +1,13 @@
 import React from 'react'
 import ChatMain from '../Chat/ChatMain'
 import UserProfile from '../User/UserProfile';
-import FriendsRequestsList from '../User/FriendRequestsList';
+import FriendsRequestsList from '../Friends/FriendRequestsList';
 import AddParticipants from '../Chat/AddParticipants';
 import AddSubject from '../Chat/AddSubject';
 import GroupChat from '../Chat/GroupChat';
 import ChatInfo from '../Chat/ChatInfo';
-import FriendsList from '../User/FriendsList';
+import CreateChat from '../Chat/CreateChat';
+import FriendsList from '../Friends/FriendsList';
 import EditGroupDescription from '../Chat/EditGroupDescription';
 import EditGroupName from '../Chat/EditGroupName';
 import SearchGroupParticipants from '../Chat/SearchGroupParticipants';
@@ -56,7 +57,7 @@ const Chat = () => {
             <Stack.Screen name="Group Description" component={EditGroupDescription} />
             <Stack.Screen name="Group Name" component={EditGroupName} />
             <Stack.Screen name="Search Participants" component={SearchGroupParticipants} />
-
+            <Stack.Screen name="Create Chat" component={CreateChat} />
         </Stack.Navigator>
     )
 }

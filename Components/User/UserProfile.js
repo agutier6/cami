@@ -1,8 +1,8 @@
-import { Box, Avatar, Text, HStack, VStack, Spinner, Button, Spacer, Pressable } from 'native-base';
+import { Box, Text, HStack, VStack, Spinner, Button, Spacer, Pressable } from 'native-base';
 import React, { useEffect, useState, useLayoutEffect } from 'react';
 import { doc, getFirestore, onSnapshot } from "firebase/firestore";
 import { useWindowDimensions } from 'react-native';
-import { sendFriendRequest, acceptFriendRequest, deleteFriend, rejectFriendRequest, selectFriendRequestStatus, selectAcceptRequestStatus, selectRejectRequestStatus, selectDeleteFriendStatus, cancelFriendRequest, selectCancelFriendRequestStatus } from './userSlice';
+import { sendFriendRequest, acceptFriendRequest, deleteFriend, rejectFriendRequest, selectFriendRequestStatus, selectAcceptRequestStatus, selectRejectRequestStatus, selectDeleteFriendStatus, cancelFriendRequest, selectCancelFriendRequestStatus } from '../Friends/friendsSlice';
 import { getAuth, signOut } from 'firebase/auth';
 import { useDispatch, useSelector } from 'react-redux';
 import { AntDesignHeaderButtons } from '../Navigation/MyHeaderButtons.js';
